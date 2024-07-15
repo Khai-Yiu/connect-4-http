@@ -1,9 +1,9 @@
-import InMemoryUserRepository from '@/user/in-memory-user-repository';
+import InMemoryUserRepositoryFactory from '@/user/in-memory-user-repository';
 
 describe('in-memory-user-repository', () => {
     describe('given the details for a user who does not exist', () => {
         it('creates the user', () => {
-            const inMemoryUserRepository = new InMemoryUserRepository();
+            const inMemoryUserRepository = new InMemoryUserRepositoryFactory();
             const createdUser = inMemoryUserRepository.create({
                 firstName: 'John',
                 lastName: 'Doe',
