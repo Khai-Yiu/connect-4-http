@@ -1,11 +1,11 @@
 import { expect } from '@jest/globals';
-import { MatcherFunction } from 'expect';
+import { MatcherFunction, MatcherContext } from 'expect';
 
 const UUID_REGEX =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 const toBeUuid: MatcherFunction<[received: string]> = function (
-    this: { isNot: boolean },
+    this: MatcherContext,
     received: string
 ) {
     const { isNot } = this ?? {};
@@ -16,9 +16,5 @@ const toBeUuid: MatcherFunction<[received: string]> = function (
             `${received} is${isNot ? ' a valid' : ' an invalid'} v4 UUID`
     };
 };
-
-expect.extend({
-    toBeUuid
-});
 
 export default toBeUuid;
