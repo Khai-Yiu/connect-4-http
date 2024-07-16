@@ -1,3 +1,4 @@
+import { isEmpty } from 'ramda';
 import { PersistedUser } from '@/user/in-memory-user-repository';
 import { UserRepository } from '@/user/user-repository';
 
@@ -20,7 +21,13 @@ export default class UserService implements UserServiceInterface {
         this.repository = repository;
     }
 
-    async create(userDetails) {
-        return this.repository.create(userDetails);
+    async create(userDetails: CreateUserParams) {
+        if (isEmpty(await this.repository.findByEmail(userDetails.email))) {
+            return this.repository.create(userDetails);
+        }
+
+        throw new UserAlreadyExistsError(
+            'A user with that email already exists'
+        );
     }
 }
