@@ -16,10 +16,10 @@ export default class InMemoryUserRepositoryFactory implements UserRepository {
         this.users = new Map();
     }
 
-    create(userDetails: CreateUserParams) {
+    async create(userDetails: CreateUserParams) {
         const { firstName, lastName, email } = userDetails;
         const uuid = crypto.randomUUID();
-        this.users.set(uuid, { firstName, lastName, email });
+        await this.users.set(uuid, { firstName, lastName, email });
 
         return {
             firstName,
