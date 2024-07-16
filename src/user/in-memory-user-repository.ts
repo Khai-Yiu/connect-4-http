@@ -1,33 +1,23 @@
-type CreateUserParams = {
+import { CreateUserParams } from '@/user/user-service';
+import { UserRepository } from '@/user/user-repository';
+import { Uuid } from '@/global';
+
+export type PersistedUser = {
     firstName: string;
     lastName: string;
     email: string;
+    uuid: Uuid;
 };
 
-type GameUuid = `${string}-${string}-${string}-${string}-${string}`;
-
-type PersistedUser = {
-    firstName: string;
-    lastName: string;
-    email: string;
-    uuid: GameUuid;
-};
-
-interface InMemoryUserRepository {
-    create: (user: CreateUserParams) => PersistedUser;
-}
-
-export default class InMemoryUserRepositoryFactory
-    implements InMemoryUserRepository
-{
-    private users: Map<GameUuid, CreateUserParams>;
+export default class InMemoryUserRepositoryFactory implements UserRepository {
+    private users: Map<Uuid, CreateUserParams>;
 
     constructor() {
         this.users = new Map();
     }
 
-    create(user: CreateUserParams) {
-        const { firstName, lastName, email } = user;
+    create(userDetails: CreateUserParams) {
+        const { firstName, lastName, email } = userDetails;
         const uuid = crypto.randomUUID();
         this.users.set(uuid, { firstName, lastName, email });
 
