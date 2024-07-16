@@ -16,6 +16,7 @@ const userRouterFactory = (userService: UserService) => {
         const user = userService
             .create({ firstName, lastName, email })
             .then((user: User) => res.status(201).send(user))
+            .catch((error) => res.status(403).send({ errors: [error.message] }))
             .catch(next);
     });
 
