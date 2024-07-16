@@ -1,6 +1,5 @@
 import express from 'express';
 import UserService from '@/user/user-service';
-import InMemoryUserRepositoryFactory from '@/user/in-memory-user-repository';
 
 type User = {
     firstName: string;
@@ -13,7 +12,7 @@ const userRouterFactory = (userService: UserService) => {
 
     userRouter.post('/signup', async (req, res, next) => {
         const { firstName, lastName, email } = req.body;
-        const user = userService
+        userService
             .create({ firstName, lastName, email })
             .then((user: User) => res.status(201).send(user))
             .catch((error) => res.status(403).send({ errors: [error.message] }))

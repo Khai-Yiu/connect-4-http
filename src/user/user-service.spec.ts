@@ -2,17 +2,15 @@ import UserService, { UserAlreadyExistsError } from '@/user/user-service';
 import InMemoryUserRepositoryFactory from '@/user/in-memory-user-repository';
 
 describe('user-service', () => {
-    const user1Details = {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@gmail.com'
-    };
-
     describe('given the details of a user that does not exist', () => {
         it('creates the user', async () => {
             const userRepository = new InMemoryUserRepositoryFactory();
             const userService = new UserService(userRepository);
-            const user = await userService.create(user1Details);
+            const user = await userService.create({
+                firstName: 'John',
+                lastName: 'Doe',
+                email: 'john.doe@gmail.com'
+            });
             expect(user).toEqual(
                 expect.objectContaining({
                     firstName: 'John',
@@ -27,8 +25,18 @@ describe('user-service', () => {
         it('throws a "user already exists" error when attempting to create users with the same email', async () => {
             const userRepository = new InMemoryUserRepositoryFactory();
             const userService = new UserService(userRepository);
-            await userService.create(user1Details);
-            expect(userService.create(user1Details)).rejects.toThrow(
+            await userService.create({
+                firstName: 'Dung',
+                lastName: 'Eater',
+                email: 'dung.eater@gmail.com'
+            });
+            expect(
+                userService.create({
+                    firstName: 'Kenny',
+                    lastName: 'Pho',
+                    email: 'dung.eater@gmail.com'
+                })
+            ).rejects.toThrow(
                 new UserAlreadyExistsError(
                     'A user with that email already exists'
                 )
