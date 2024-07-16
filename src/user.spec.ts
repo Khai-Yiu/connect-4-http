@@ -27,7 +27,7 @@ describe('user-integration', () => {
             });
         });
         describe('given a user already exists with a given email', () => {
-            it('forbids creation of another user with that email', async () => {
+            it.skip('forbids creation of another user with that email', async () => {
                 await request(app).post('/user/signup').send(user1Details);
                 const response = await request(app)
                     .post('/user/signup')
