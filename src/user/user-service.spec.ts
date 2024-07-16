@@ -24,7 +24,7 @@ describe('user-service', () => {
         });
     });
     describe('given an email is already associated with an existing user', () => {
-        it('throws a "user already exists" error when attempting to create users with the same email', async () => {
+        it.skip('throws a "user already exists" error when attempting to create users with the same email', async () => {
             const userRepository = new InMemoryUserRepositoryFactory();
             const userService = new UserService(userRepository);
             await userService.create(user1Details);

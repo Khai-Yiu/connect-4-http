@@ -9,7 +9,7 @@ describe('in-memory-user-repository', () => {
     const user2Details = {
         firstName: 'John',
         lastName: 'Doe 2',
-        email: 'john.doe@gmail.com'
+        email: 'john.doe2@gmail.com'
     };
 
     describe('given the details for a user who does not exist', () => {

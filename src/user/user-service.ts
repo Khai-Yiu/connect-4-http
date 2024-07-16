@@ -7,6 +7,8 @@ export type CreateUserParams = {
     email: string;
 };
 
+export class UserAlreadyExistsError extends Error {}
+
 interface UserServiceInterface {
     create: (userDetails: CreateUserParams) => Promise<PersistedUser>;
 }

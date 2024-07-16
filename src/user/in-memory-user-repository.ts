@@ -10,7 +10,7 @@ export type PersistedUser = {
 };
 
 export default class InMemoryUserRepositoryFactory implements UserRepository {
-    private users: Map<Uuid, CreateUserParams>;
+    private users: Map<Uuid, PersistedUser>;
 
     constructor() {
         this.users = new Map();
@@ -19,7 +19,7 @@ export default class InMemoryUserRepositoryFactory implements UserRepository {
     async create(userDetails: CreateUserParams) {
         const { firstName, lastName, email } = userDetails;
         const uuid = crypto.randomUUID();
-        await this.users.set(uuid, { firstName, lastName, email });
+        this.users.set(uuid, { firstName, lastName, email, uuid });
 
         return {
             firstName,
@@ -27,5 +27,11 @@ export default class InMemoryUserRepositoryFactory implements UserRepository {
             email,
             uuid
         };
+    }
+
+    async findByEmail(email: string) {
+        return Array.from(this.users.values()).filter(
+            (user) => user.email === email
+        );
     }
 }
