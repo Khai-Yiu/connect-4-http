@@ -15,7 +15,7 @@ const userRouterFactory = (userService: UserService) => {
         const { firstName, lastName, email } = req.body;
         const user = userService
             .create({ firstName, lastName, email })
-            .then((user: User) => res.send(user))
+            .then((user: User) => res.status(201).send(user))
             .catch(next);
     });
 
