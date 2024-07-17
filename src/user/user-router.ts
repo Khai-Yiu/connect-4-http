@@ -1,5 +1,6 @@
 import express from 'express';
 import UserService from '@/user/user-service';
+import validateUserSignupRequestBody from '@/validate-user-signup-request-body';
 
 type User = {
     firstName: string;
@@ -9,8 +10,17 @@ type User = {
 
 const userRouterFactory = (userService: UserService) => {
     const userRouter = express.Router();
+    userRouter.post('/signup', (req, res, next) => {
+        const { isValid, errors } = validateUserSignupRequestBody(req.body);
 
-    userRouter.post('/signup', async (req, res, next) => {
+        if (!isValid) {
+            res.status(403).send({ errors });
+        }
+
+        next();
+    });
+
+    userRouter.post('/signup', (req, res, next) => {
         const { firstName, lastName, email } = req.body;
         userService
             .create({ firstName, lastName, email })

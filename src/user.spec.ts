@@ -8,7 +8,8 @@ describe('user-integration', () => {
                 const response = await request(app).post('/user/signup').send({
                     firstName: 'John',
                     lastName: 'Doe',
-                    email: 'john.doe@gmail.com'
+                    email: 'john.doe@gmail.com',
+                    password: 'Hello123'
                 });
                 expect(response.statusCode).toBe(201);
                 expect(response.body).toEqual(
@@ -27,12 +28,14 @@ describe('user-integration', () => {
                 await request(app).post('/user/signup').send({
                     firstName: 'Kenny',
                     lastName: 'Pho',
-                    email: 'pho.devourer@gmail.com'
+                    email: 'pho.devourer@gmail.com',
+                    password: 'Hello213'
                 });
                 const response = await request(app).post('/user/signup').send({
                     firstName: 'Lenny',
                     lastName: 'Pho',
-                    email: 'pho.devourer@gmail.com'
+                    email: 'pho.devourer@gmail.com',
+                    password: 'Hello123'
                 });
                 expect(response.statusCode).toBe(403);
                 expect(response.body.errors).toEqual([
