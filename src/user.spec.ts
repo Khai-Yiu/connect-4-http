@@ -45,13 +45,19 @@ describe('user-integration', () => {
             it('forbids creation of user', async () => {
                 const response = await request(app).post('/user/signup').send({
                     firstName: 'Dempsey',
-                    lastName: 'Lamington',
                     email: 'dempsey.lamnington@gmail.com'
                 });
 
                 expect(response.statusCode).toBe(403);
                 expect(response.body.errors).toEqual([
-                    'Invalid user details provided. Expected a first name, last name, email address and password.'
+                    {
+                        message: '"lastName" is required',
+                        path: 'lastName'
+                    },
+                    {
+                        message: '"password" is required',
+                        path: 'password'
+                    }
                 ]);
                 expect(response.headers['content-type']).toMatch(/json/);
             });
