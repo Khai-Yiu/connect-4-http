@@ -6,6 +6,7 @@ export type PersistedUser = {
     firstName: string;
     lastName: string;
     email: string;
+    password: string;
     uuid: Uuid;
 };
 
@@ -17,14 +18,15 @@ export default class InMemoryUserRepositoryFactory implements UserRepository {
     }
 
     async create(userDetails: CreateUserParams) {
-        const { firstName, lastName, email } = userDetails;
+        const { firstName, lastName, email, password } = userDetails;
         const uuid = crypto.randomUUID();
-        this.users.set(uuid, { firstName, lastName, email, uuid });
+        this.users.set(uuid, { firstName, lastName, email, password, uuid });
 
         return {
             firstName,
             lastName,
             email,
+            password,
             uuid
         };
     }

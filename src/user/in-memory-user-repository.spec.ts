@@ -1,4 +1,5 @@
 import InMemoryUserRepositoryFactory from '@/user/in-memory-user-repository';
+import { argon2d } from 'argon2';
 
 describe('in-memory-user-repository', () => {
     describe('given the details for a user who does not exist', () => {
@@ -7,13 +8,17 @@ describe('in-memory-user-repository', () => {
             const createdUser = await inMemoryUserRepository.create({
                 firstName: 'John',
                 lastName: 'Doe',
-                email: 'john.doe@gmail.com'
+                email: 'john.doe@gmail.com',
+                password:
+                    '$argon2id$v=19$m=65536,t=3,p=4$69uuSYaO9KQmE/83AXUpOA$0E+BlpapwGDhLuToVg1+chQrWOmPrYe+My6CCStF+GM'
             });
             expect(createdUser).toEqual(
                 expect.objectContaining({
                     firstName: 'John',
                     lastName: 'Doe',
                     email: 'john.doe@gmail.com',
+                    password:
+                        '$argon2id$v=19$m=65536,t=3,p=4$69uuSYaO9KQmE/83AXUpOA$0E+BlpapwGDhLuToVg1+chQrWOmPrYe+My6CCStF+GM',
                     uuid: expect.toBeUuid()
                 })
             );
@@ -25,12 +30,16 @@ describe('in-memory-user-repository', () => {
             await inMemoryUserRepository.create({
                 firstName: 'John',
                 lastName: 'Doe',
-                email: 'john.doe@gmail.com'
+                email: 'john.doe@gmail.com',
+                password:
+                    '$argon2id$v=19$m=65536,t=3,p=4$69uuSYaO9KQmE/83AXUpOA$0E+BlpapwGDhLuToVg1+chQrWOmPrYe+My6CCStF+GM'
             });
             await inMemoryUserRepository.create({
                 firstName: 'Jonathan',
                 lastName: 'Doe',
-                email: 'john.doe2@gmail.com'
+                email: 'john.doe2@gmail.com',
+                password:
+                    '$argon2id$v=19$m=65536,t=3,p=4$69uuSYaO9KQmE/83AXUpOA$0E+BlpapwGDhLuToVg1+chQrWOmPrYe+My6CCStF+GM'
             });
             const users =
                 await inMemoryUserRepository.findByEmail('john.doe@gmail.com');
@@ -39,6 +48,8 @@ describe('in-memory-user-repository', () => {
                     firstName: 'John',
                     lastName: 'Doe',
                     email: 'john.doe@gmail.com',
+                    password:
+                        '$argon2id$v=19$m=65536,t=3,p=4$69uuSYaO9KQmE/83AXUpOA$0E+BlpapwGDhLuToVg1+chQrWOmPrYe+My6CCStF+GM',
                     uuid: expect.toBeUuid()
                 }
             ]);

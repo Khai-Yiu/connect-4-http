@@ -1,11 +1,13 @@
 import { isEmpty } from 'ramda';
 import { PersistedUser } from '@/user/in-memory-user-repository';
 import { UserRepository } from '@/user/user-repository';
+import argon2 from 'argon2';
 
 export type CreateUserParams = {
     firstName: string;
     lastName: string;
     email: string;
+    password: string;
 };
 
 export class UserAlreadyExistsError extends Error {}
@@ -23,7 +25,10 @@ export default class UserService implements UserServiceInterface {
 
     async create(userDetails: CreateUserParams) {
         if (isEmpty(await this.repository.findByEmail(userDetails.email))) {
-            return this.repository.create(userDetails);
+            return this.repository.create({
+                ...userDetails,
+                password: await argon2.hash(userDetails.password)
+            });
         }
 
         throw new UserAlreadyExistsError(

@@ -10,7 +10,8 @@ describe('user-service', () => {
             const user = await userService.create({
                 firstName: 'John',
                 lastName: 'Doe',
-                email: 'john.doe@gmail.com'
+                email: 'john.doe@gmail.com',
+                password: 'Hello123'
             });
             expect(user).toEqual(
                 expect.objectContaining({
@@ -20,6 +21,7 @@ describe('user-service', () => {
                     uuid: expect.toBeUuid()
                 })
             );
+            expect(await argon2.verify(user.password, 'Hello123')).toBeTruthy();
         });
     });
     describe('given an email is already associated with an existing user', () => {
@@ -29,13 +31,15 @@ describe('user-service', () => {
             await userService.create({
                 firstName: 'Dung',
                 lastName: 'Eater',
-                email: 'dung.eater@gmail.com'
+                email: 'dung.eater@gmail.com',
+                password: 'Hello123'
             });
             expect(
                 userService.create({
                     firstName: 'Kenny',
                     lastName: 'Pho',
-                    email: 'dung.eater@gmail.com'
+                    email: 'dung.eater@gmail.com',
+                    password: 'Hello123'
                 })
             ).rejects.toThrow(
                 new UserAlreadyExistsError(
@@ -55,8 +59,7 @@ describe('user-service', () => {
                 password: 'Hello123'
             });
 
-            const hashedPassword = await argon2.hash('Hello123');
-            expect(user.password).toEqual(hashedPassword);
+            expect(await argon2.verify(user.password, 'Hello123')).toBeTruthy();
         });
     });
 });
