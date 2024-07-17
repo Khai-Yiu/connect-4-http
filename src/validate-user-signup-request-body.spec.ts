@@ -1,4 +1,5 @@
 import validateUserSignupRequestBody from '@/validate-user-signup-request-body';
+import { UserSignupRequestBody } from '@/user/user-router.d';
 
 describe('validate-user-signup-request-body', () => {
     describe('given a well-formatted user signup request body', () => {
@@ -23,7 +24,7 @@ describe('validate-user-signup-request-body', () => {
                 email: 'dung.eater@gmail.com'
             };
             const validationResult = validateUserSignupRequestBody(
-                userSignupRequestBody
+                userSignupRequestBody as UserSignupRequestBody
             );
             expect(validationResult).toEqual({
                 isValid: false,
@@ -31,6 +32,30 @@ describe('validate-user-signup-request-body', () => {
                     {
                         message: '"password" is required',
                         path: 'password'
+                    }
+                ]
+            });
+        });
+    });
+    describe('given a user signup request body missing multiple fields', () => {
+        it('fails validation', () => {
+            const userSignupRequestBody = {
+                firstName: 'Dempsey',
+                password: 'NotSecure'
+            };
+            const validationResult = validateUserSignupRequestBody(
+                userSignupRequestBody as UserSignupRequestBody
+            );
+            expect(validationResult).toEqual({
+                isValid: false,
+                errors: [
+                    {
+                        message: '"lastName" is required',
+                        path: 'lastName'
+                    },
+                    {
+                        message: '"email" is required',
+                        path: 'email'
                     }
                 ]
             });
