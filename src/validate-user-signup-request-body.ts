@@ -13,7 +13,9 @@ const schema = Joi.object({
 function validateUserSignupRequestBody(
     userSignupRequestBody: UserSignupRequestBody
 ): ValidationResult {
-    const validationResult = schema.validate(userSignupRequestBody);
+    const validationResult = schema.validate(userSignupRequestBody, {
+        abortEarly: false
+    });
     const isValid = validationResult.error === undefined;
     if (!isValid) {
         return {
