@@ -1,4 +1,5 @@
-import Joi from 'joi';
+import { pipe, path, map, applySpec, join, prop } from 'ramda';
+import Joi, { ValidationErrorItem } from 'joi';
 import { UserSignupRequestBody } from '@/user/user-router.d';
 import { ValidationResult } from '@/validation.d';
 
@@ -12,7 +13,27 @@ const schema = Joi.object({
 function validateUserSignupRequestBody(
     userSignupRequestBody: UserSignupRequestBody
 ): ValidationResult {
-    const isValid = schema.validate(userSignupRequestBody).error === undefined;
+    const validationResult = schema.validate(userSignupRequestBody);
+    const isValid = validationResult.error === undefined;
+    if (!isValid) {
+        return {
+            isValid,
+            errors: pipe<
+                [Joi.ValidationResult],
+                ValidationErrorItem[],
+                { message: string; path: string }[]
+            >(
+                path(['error', 'details']),
+                map(
+                    applySpec({
+                        message: prop('message'),
+                        path: pipe(prop('path'), join('.'))
+                    })
+                )
+            )(validationResult)
+        };
+    }
+
     return {
         isValid
     };
