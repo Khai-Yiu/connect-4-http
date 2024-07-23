@@ -72,11 +72,11 @@ describe('user-service', () => {
         });
     });
     describe('given a registered user', () => {
-        describe('and provided credentials', () => {
+        describe('and provided correct credentials', () => {
             it('authenticates the user', async () => {
                 const repository = new InMemoryUserRepositoryFactory();
                 const userService = new UserService(repository);
-                const user = await userService.create({
+                await userService.create({
                     firstName: 'John',
                     lastName: 'Doe',
                     email: 'john.doe@gmail.com',
@@ -89,6 +89,29 @@ describe('user-service', () => {
 
                 expect(await userService.authenticate(userCredentials)).toEqual(
                     expect.objectContaining({ isAuthenticated: true })
+                );
+            });
+        });
+        describe('and provided incorrect credentials', () => {
+            it('does not authenticate the user', async () => {
+                const repository = new InMemoryUserRepositoryFactory();
+                const userService = new UserService(repository);
+                await userService.create({
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    email: 'john.doe@gmail.com',
+                    password: 'Hello123'
+                });
+                const userCredentials = {
+                    email: 'john.doe@gmail.com',
+                    password: 'Hello1234'
+                };
+
+                expect(await userService.authenticate(userCredentials)).toEqual(
+                    expect.objectContaining({
+                        isAuthenticated: false,
+                        error: 'The provided email or password is incorrect.'
+                    })
                 );
             });
         });
