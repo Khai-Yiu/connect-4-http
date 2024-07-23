@@ -182,5 +182,29 @@ describe('user-integration', () => {
                 });
             });
         });
+        describe('given credentials for a user that does not exist', () => {
+            it('responds with a http status code 403', async () => {
+                const { publicKey: jwtPublicKey, privateKey: jwtPrivateKey } =
+                    await generateKeyPair('PS256');
+                const app = appFactory({
+                    routerParameters: {
+                        stage: 'test',
+                        keySet: {
+                            jwtPublicKey
+                        }
+                    }
+                });
+                const userCredentials = {
+                    username: 'dung.eater@gmail.com',
+                    password: 'Hello123'
+                };
+                const response = await request(app)
+                    .post('/user/login')
+                    .send(userCredentials);
+                expect(response.statusCode).toBe(403);
+                expect(response.body.errors).toEqual(['Login attempt failed.']);
+                expect(response.headers['content-type']).toMatch(/json/);
+            });
+        });
     });
 });

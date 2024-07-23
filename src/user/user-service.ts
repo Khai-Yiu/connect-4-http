@@ -17,7 +17,6 @@ export type UserCredentials = {
 
 export type AuthenticationDetails = {
     isAuthenticated: boolean;
-    error?: string;
 };
 
 export class UserAlreadyExistsError extends Error {}
@@ -59,14 +58,11 @@ export default class UserService implements UserServiceInterface {
                 password
             );
 
-            return isValidPassword
-                ? {
-                      isAuthenticated: true
-                  }
-                : {
-                      isAuthenticated: false,
-                      error: 'The provided email or password is incorrect.'
-                  };
+            if (isValidPassword) {
+                return {
+                    isAuthenticated: true
+                };
+            }
         }
 
         throw new AuthenticationFailedError('Authentication failed');

@@ -1,5 +1,4 @@
 import InMemoryUserRepositoryFactory from '@/user/in-memory-user-repository';
-import { argon2d } from 'argon2';
 
 describe('in-memory-user-repository', () => {
     describe('given the details for a user who does not exist', () => {

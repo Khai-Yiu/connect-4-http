@@ -1,10 +1,22 @@
-import express from 'express';
-import { resolveRouters, RouterTypes } from '@/user/resolve-routers';
-import { Env } from '@/global';
+import express, { Router } from 'express';
+import {
+    resolveRouters,
+    RouterParameters,
+    RouterTypes
+} from '@/user/resolve-routers';
 
-const routers = resolveRouters(process.env.NODE_ENV as Env);
-const app = express();
-app.use(express.json());
-app.use('/user', routers[RouterTypes.userRouter]);
+type AppParameters = {
+    routerParameters: RouterParameters;
+};
 
-export default app;
+const appFactory = (appParameters: AppParameters) => {
+    const { routerParameters } = appParameters;
+    const routers = resolveRouters(routerParameters);
+    const app = express();
+    app.use(express.json());
+    app.use('/user', routers[RouterTypes.userRouter]);
+
+    return app;
+};
+
+export default appFactory;
