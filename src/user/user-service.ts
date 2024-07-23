@@ -10,10 +10,17 @@ export type CreateUserParams = {
     password: string;
 };
 
-export class UserAlreadyExistsError extends Error {}
+export type UserCredentials = {
+    email: string;
+    password: string;
+};
 
-interface UserServiceInterface {
+export class UserAlreadyExistsError extends Error {}
+export class AuthenticationFailedError extends Error {}
+
+export interface UserServiceInterface {
     create: (userDetails: CreateUserParams) => Promise<PersistedUser>;
+    authenticate: (userCredentials: UserCredentials) => Promise<void>;
 }
 
 export default class UserService implements UserServiceInterface {
@@ -34,5 +41,21 @@ export default class UserService implements UserServiceInterface {
         throw new UserAlreadyExistsError(
             'A user with that email already exists'
         );
+    }
+
+    async authenticate({ email, password }: UserCredentials) {
+        const userDetails = (await this.repository.findByEmail(email))[0];
+
+        if (userDetails !== undefined) {
+            const isValidPassword = await argon2.verify(
+                userDetails.password,
+                password
+            );
+
+            if (!isValidPassword) {
+            }
+        }
+
+        throw new AuthenticationFailedError('Authentication failed');
     }
 }
