@@ -15,12 +15,19 @@ export type UserCredentials = {
     password: string;
 };
 
+export type AuthenticationDetails = {
+    isAuthenticated: boolean;
+    error?: string;
+};
+
 export class UserAlreadyExistsError extends Error {}
 export class AuthenticationFailedError extends Error {}
 
 export interface UserServiceInterface {
     create: (userDetails: CreateUserParams) => Promise<PersistedUser>;
-    authenticate: (userCredentials: UserCredentials) => Promise<void>;
+    authenticate: (
+        userCredentials: UserCredentials
+    ) => Promise<AuthenticationDetails>;
 }
 
 export default class UserService implements UserServiceInterface {
@@ -52,11 +59,14 @@ export default class UserService implements UserServiceInterface {
                 password
             );
 
-            if (isValidPassword) {
-                return {
-                    isAuthenticated: true
-                };
-            }
+            return isValidPassword
+                ? {
+                      isAuthenticated: true
+                  }
+                : {
+                      isAuthenticated: false,
+                      error: 'The provided email or password is incorrect.'
+                  };
         }
 
         throw new AuthenticationFailedError('Authentication failed');
