@@ -113,14 +113,13 @@ describe('user-integration', () => {
                     await request(app).post('/user/signup').send(userDetails);
                     const userCredentials = {
                         username: 'dung.eater@gmail.com',
-                        password: 'IAmDungEater'
+                        password: 'IAmTheDungEater'
                     };
-                    const publicKey = process.env.JWT_PUBLIC_KEY;
                     const loginResponse = await request(app)
                         .post('/user/login')
                         .send(userCredentials);
                     const jwt = pipe<[Response], string, Array<string>, string>(
-                        path(['header', 'authorization']),
+                        path(['headers', 'authorization']),
                         split(' '),
                         last
                     )(loginResponse);
@@ -144,6 +143,7 @@ describe('user-integration', () => {
                         username: 'dung.eater@gmail.com',
                         roles: []
                     });
+                    jest.useRealTimers();
                 });
             });
             describe('and they provide incorrect credentials', () => {

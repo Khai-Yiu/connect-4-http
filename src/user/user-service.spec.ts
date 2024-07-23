@@ -107,11 +107,10 @@ describe('user-service', () => {
                     password: 'Hello1234'
                 };
 
-                expect(await userService.authenticate(userCredentials)).toEqual(
-                    expect.objectContaining({
-                        isAuthenticated: false,
-                        error: 'The provided email or password is incorrect.'
-                    })
+                expect(
+                    userService.authenticate(userCredentials)
+                ).rejects.toThrow(
+                    new AuthenticationFailedError('Authentication failed')
                 );
             });
         });

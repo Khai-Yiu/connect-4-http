@@ -16,26 +16,34 @@ const loginRequestHandlerFactory = (
     jwtPublicKey?: JwtPublicKey
 ): RequestHandler => {
     return async (req, res, next) => {
-        const timeIssued = Date.now();
-        const durationOfDaysInMilliseconds = 1 * 24 * 60 * 60 * 1000;
-        const username = req.body.username;
-        const jwt = await new EncryptJWT({
-            username,
-            roles: []
-        })
-            .setProtectedHeader({
-                alg: 'RSA-OAEP-256',
-                typ: 'JWT',
-                enc: 'A256GCM'
+        await userService
+            .authenticate({
+                email: req.body.username,
+                password: req.body.password
             })
-            .setIssuer('connect4-http-server')
-            .setIssuedAt()
-            .setExpirationTime('1 day from now')
-            .setNotBefore('0 sec from now')
-            .setSubject(username)
-            .encrypt(jwtPublicKey);
+            .then(async () => {
+                const username = req.body.username;
+                const jwt = await new EncryptJWT({
+                    username,
+                    roles: []
+                })
+                    .setProtectedHeader({
+                        alg: 'RSA-OAEP-256',
+                        typ: 'JWT',
+                        enc: 'A256GCM'
+                    })
+                    .setIssuer('connect4-http-server')
+                    .setIssuedAt()
+                    .setExpirationTime('1 day from now')
+                    .setNotBefore('0 sec from now')
+                    .setSubject(username)
+                    .encrypt(jwtPublicKey);
+                res.setHeader('Authorization', `Basic ${jwt}`).send();
+            })
+            .catch(() =>
+                res.status(403).send({ errors: ['Login attempt failed.'] })
+            );
 
-        res.appendHeader('authorization', jwt).send();
         next();
     };
 };
