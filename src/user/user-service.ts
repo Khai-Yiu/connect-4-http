@@ -52,7 +52,10 @@ export default class UserService implements UserServiceInterface {
                 password
             );
 
-            if (!isValidPassword) {
+            if (isValidPassword) {
+                return {
+                    isAuthenticated: true
+                };
             }
         }
 
