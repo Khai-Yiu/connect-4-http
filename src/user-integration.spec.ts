@@ -146,6 +146,41 @@ describe('user-integration', () => {
                     });
                 });
             });
+            describe('and they provide incorrect credentials', () => {
+                it('responds with http status code 403', async () => {
+                    const {
+                        publicKey: jwtPublicKey,
+                        privateKey: jwtPrivateKey
+                    } = await generateKeyPair('PS256');
+                    const app = appFactory({
+                        routerParameters: {
+                            stage: 'test',
+                            keySet: {
+                                jwtPublicKey
+                            }
+                        }
+                    });
+                    const userDetails = {
+                        firstName: 'Dung',
+                        lastName: 'Eater',
+                        email: 'dung.eater@gmail.com',
+                        password: 'Hello123'
+                    };
+                    await request(app).post('/user/signup').send(userDetails);
+                    const userCredentials = {
+                        username: 'dung.eater@gmail.com',
+                        password: 'Hello124'
+                    };
+                    const response = await request(app)
+                        .post('/user/login')
+                        .send(userCredentials);
+                    expect(response.statusCode).toBe(403);
+                    expect(response.body.errors).toEqual([
+                        'Login attempt failed.'
+                    ]);
+                    expect(response.headers['content-type']).toMatch(/json/);
+                });
+            });
         });
     });
 });
