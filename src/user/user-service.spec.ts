@@ -103,7 +103,7 @@ describe('user-service', () => {
                     password: 'DungEater123'
                 };
                 expect(
-                    userService.authenticate(userCredenials)
+                    userService.authenticate(userCredentials)
                 ).rejects.toThrow(
                     new AuthenticationFailedError('Authentication failed')
                 );
