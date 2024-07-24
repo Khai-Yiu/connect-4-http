@@ -207,4 +207,78 @@ describe('user-integration', () => {
             });
         });
     });
+    describe('user', () => {
+        describe('given the user does not provide an authorization token', () => {
+            describe('when they attempt to view their user details', () => {
+                it('responds with http status code 401', async () => {
+                    const app = appFactory({
+                        routerParameters: {
+                            stage: 'test'
+                        }
+                    });
+                    const response = await request(app).get('/use').send();
+                    expect(response.statusCode).toBe(401);
+                    expect(response.body.errors).toEqual([
+                        'You must be logged in to view your user details.'
+                    ]);
+                });
+            });
+        });
+    });
+    describe('logout', () => {
+        describe('given a user is logged in', () => {
+            it.skip('their session token is invalidated upon logout', async () => {
+                jest.useFakeTimers({
+                    doNotFake: ['setImmediate']
+                });
+                const dateInMilliseconds = Date.now();
+                jest.setSystemTime(dateInMilliseconds);
+                const { publicKey: jwtPublicKey, privateKey: jwtPrivateKey } =
+                    await generateKeyPair('PS256');
+                const app = appFactory({
+                    routerParameters: {
+                        stage: 'test',
+                        keySet: {
+                            jwtPublicKey
+                        }
+                    }
+                });
+                const userDetails = {
+                    firstName: 'Dung',
+                    lastName: 'Eater',
+                    email: 'dung.eater@gmail.com',
+                    password: 'IAmTheDungEater'
+                };
+                await request(app).post('/user/signup').send(userDetails);
+                const userCredentials = {
+                    username: 'dung.eater@gmail.com',
+                    password: 'IAmTheDungEater'
+                };
+                const loginResponse = await request(app)
+                    .post('/user/login')
+                    .send(userCredentials);
+                const jwt = pipe<[Response], string, Array<string>, string>(
+                    path(['headers', 'authorization']),
+                    split(' '),
+                    last
+                )(loginResponse);
+
+                await request(app)
+                    .post('/user/logout')
+                    .set('Authorization', `Bearer ${jwt}`)
+                    .send();
+
+                const protectedResponse = await request(app)
+                    .get('/protected-endpoint')
+                    .set('Authorization', `Bearer ${jwt}`);
+
+                expect(protectedResponse.status).toBe(401);
+                expect(protectedResponse.body).toEqual({
+                    error: 'Unauthorized'
+                });
+
+                jest.useRealTimers();
+            });
+        });
+    });
 });
