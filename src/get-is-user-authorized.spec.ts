@@ -29,5 +29,23 @@ describe('get-is-user-authorized', () => {
                 ).toBe(false);
             });
         });
+        describe('which was not issued to the user', () => {
+            it('returns false', async () => {
+                const { publicKey, privateKey } =
+                    await generateKeyPair('RS256');
+                const token = await new EncryptJWT({
+                    username: 'bye@gmail.com'
+                })
+                    .setProtectedHeader({
+                        alg: 'RSA-OAEP-256',
+                        enc: 'A128CBC-HS256'
+                    })
+                    .encrypt(publicKey);
+
+                expect(
+                    await getIsUserAuthorized(token, privateKey, 'hi@gmail.com')
+                ).toBe(false);
+            });
+        });
     });
 });
