@@ -1,8 +1,9 @@
-import express, { RequestHandler } from 'express';
+import express, { RequestHandler, Router } from 'express';
 import UserService, { UserServiceInterface } from '@/user/user-service';
 import validateUserSignupRequestBody from '@/validate-user-signup-request-body';
 import { JwtPublicKey, KeySet } from '@/global';
-import { EncryptJWT } from 'jose';
+import { EncryptJWT, generateKeyPair } from 'jose';
+import { RouterTypes } from './resolve-routers';
 
 type User = {
     firstName: string;
@@ -13,10 +14,20 @@ type User = {
 
 const userDetailsRequestHandlerFactory =
     (userService: UserService): RequestHandler =>
-    (req, res, next) => {
-        res.status(401).send({
-            errors: ['You must be logged in to view your user details.']
-        });
+    async (req, res, next) => {
+        const { email } = req.body;
+        const authorizationToken = req.headers.authorization;
+        const isAuthorized = false;
+        const userDetails = 1;
+
+        if (isAuthorized) {
+            res.status(200).send(userDetails);
+        } else {
+            res.status(401).send({
+                errors: ['You must be logged in to view your user details.']
+            });
+        }
+
         next();
     };
 
@@ -80,7 +91,7 @@ const userRouterFactory = (userService: UserService, keySet: KeySet) => {
     userRouter.post('/signup', registerRequestHandlerFactory(userService));
     userRouter.post(
         '/login',
-        loginRequestHandlerFactory(userService, keySet?.jwtPublicKey)
+        loginRequestHandlerFactory(userService, keySet.publicKey)
     );
 
     return userRouter;

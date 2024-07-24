@@ -1,4 +1,4 @@
-import { CreateUserParams } from '@/user/user-service';
+import { CreateUserDetails } from '@/user/user-service';
 import { UserRepository } from '@/user/user-repository';
 import { Uuid } from '@/global';
 
@@ -17,7 +17,7 @@ export default class InMemoryUserRepositoryFactory implements UserRepository {
         this.users = new Map();
     }
 
-    async create(userDetails: CreateUserParams) {
+    async create(userDetails: CreateUserDetails) {
         const { firstName, lastName, email, password } = userDetails;
         const uuid = crypto.randomUUID();
         this.users.set(uuid, { firstName, lastName, email, password, uuid });

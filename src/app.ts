@@ -9,8 +9,7 @@ type AppParameters = {
     routerParameters: RouterParameters;
 };
 
-const appFactory = (appParameters: AppParameters) => {
-    const { routerParameters } = appParameters;
+const appFactory = ({ routerParameters }: AppParameters) => {
     const routers = resolveRouters(routerParameters);
     const app = express();
     app.use(express.json());
