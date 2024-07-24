@@ -216,7 +216,26 @@ describe('user-integration', () => {
                             stage: 'test'
                         }
                     });
-                    const response = await request(app).get('/use').send();
+                    const response = await request(app).get('/user').send();
+                    expect(response.statusCode).toBe(401);
+                    expect(response.body.errors).toEqual([
+                        'You must be logged in to view your user details.'
+                    ]);
+                });
+            });
+        });
+        describe('given a user provides an authorization token', () => {
+            describe('and their token is invalid', () => {
+                it('responds with http status code 401', async () => {
+                    const app = appFactory({
+                        routerParameters: {
+                            stage: 'test'
+                        }
+                    });
+                    const response = await request(app)
+                        .get('/user')
+                        .set('Authorization', 'token')
+                        .send();
                     expect(response.statusCode).toBe(401);
                     expect(response.body.errors).toEqual([
                         'You must be logged in to view your user details.'
