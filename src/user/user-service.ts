@@ -1,32 +1,24 @@
 import { isEmpty } from 'ramda';
 import { PersistedUser } from '@/user/in-memory-user-repository';
 import { UserRepository } from '@/user/user-repository';
+import {
+    CreateUserDetails,
+    UserCredentials,
+    UserDetails,
+    AuthenticationDetails
+} from '@/user/user-service.d';
 import argon2 from 'argon2';
-
-export type CreateUserParams = {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-};
-
-export type UserCredentials = {
-    email: string;
-    password: string;
-};
-
-export type AuthenticationDetails = {
-    isAuthenticated: boolean;
-};
 
 export class UserAlreadyExistsError extends Error {}
 export class AuthenticationFailedError extends Error {}
+export class UserNotFoundError extends Error {}
 
 export interface UserServiceInterface {
-    create: (userDetails: CreateUserParams) => Promise<PersistedUser>;
+    create: (userDetails: CreateUserDetails) => Promise<PersistedUser>;
     authenticate: (
         userCredentials: UserCredentials
     ) => Promise<AuthenticationDetails>;
+    getUserDetails: (email: String) => Promise<UserDetails>;
 }
 
 export default class UserService implements UserServiceInterface {
@@ -36,7 +28,7 @@ export default class UserService implements UserServiceInterface {
         this.repository = repository;
     }
 
-    async create(userDetails: CreateUserParams) {
+    async create(userDetails: CreateUserDetails) {
         if (isEmpty(await this.repository.findByEmail(userDetails.email))) {
             return this.repository.create({
                 ...userDetails,
@@ -66,5 +58,15 @@ export default class UserService implements UserServiceInterface {
         }
 
         throw new AuthenticationFailedError('Authentication failed');
+    }
+
+    async getUserDetails(email: string) {
+        const persistedUsersWithProvidedEmail =
+            await this.repository.findByEmail(email);
+        const persistedUser = persistedUsersWithProvidedEmail[0];
+
+        if (persistedUser === undefined) {
+            throw new UserNotFoundError('User does not exist.');
+        }
     }
 }

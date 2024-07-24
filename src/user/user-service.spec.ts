@@ -1,7 +1,8 @@
 import argon2 from 'argon2';
 import UserService, {
     AuthenticationFailedError,
-    UserAlreadyExistsError
+    UserAlreadyExistsError,
+    UserNotFoundError
 } from '@/user/user-service';
 import InMemoryUserRepositoryFactory from '@/user/in-memory-user-repository';
 
