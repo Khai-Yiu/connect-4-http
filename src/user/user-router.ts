@@ -11,6 +11,15 @@ type User = {
     password: string;
 };
 
+const userDetailsRequestHandlerFactory =
+    (userService: UserService): RequestHandler =>
+    (req, res, next) => {
+        res.status(401).send({
+            errors: ['You must be logged in to view your user details.']
+        });
+        next();
+    };
+
 const loginRequestHandlerFactory = (
     userService: UserServiceInterface,
     jwtPublicKey?: JwtPublicKey
@@ -67,6 +76,7 @@ const registerRequestHandlerFactory =
 
 const userRouterFactory = (userService: UserService, keySet: KeySet) => {
     const userRouter = express.Router();
+    userRouter.get('/', userDetailsRequestHandlerFactory(userService));
     userRouter.post('/signup', registerRequestHandlerFactory(userService));
     userRouter.post(
         '/login',
