@@ -1,4 +1,4 @@
-import { jwtDecrypt, KeyLike } from 'jose';
+import { jwtDecrypt, jwtVerify, KeyLike } from 'jose';
 import { JWEInvalid, JWTExpired } from 'jose/errors';
 
 const getIsUserAuthorized = async (
@@ -8,9 +8,8 @@ const getIsUserAuthorized = async (
 ) => {
     try {
         const { payload } = await jwtDecrypt(token, privateKey);
-        const currentTimeInSeconds = Math.floor(Date.now() / 1000);
 
-        if (payload.exp && currentTimeInSeconds > payload.exp) {
+        if (payload.username !== email) {
             return false;
         }
     } catch (error) {
