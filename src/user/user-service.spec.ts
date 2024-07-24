@@ -71,63 +71,79 @@ describe('user-service', () => {
             });
         });
     });
-    describe('given a registered user', () => {
-        describe('and provided correct credentials', () => {
-            it('authenticates the user', async () => {
-                const repository = new InMemoryUserRepositoryFactory();
-                const userService = new UserService(repository);
-                await userService.create({
-                    firstName: 'John',
-                    lastName: 'Doe',
-                    email: 'john.doe@gmail.com',
-                    password: 'Hello123'
-                });
-                const userCredentials = {
-                    email: 'john.doe@gmail.com',
-                    password: 'Hello123'
-                };
+    describe('user authentication', () => {
+        describe('given a registered user', () => {
+            describe('and provided correct credentials', () => {
+                it('authenticates the user', async () => {
+                    const repository = new InMemoryUserRepositoryFactory();
+                    const userService = new UserService(repository);
+                    await userService.create({
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        email: 'john.doe@gmail.com',
+                        password: 'Hello123'
+                    });
+                    const userCredentials = {
+                        email: 'john.doe@gmail.com',
+                        password: 'Hello123'
+                    };
 
-                expect(await userService.authenticate(userCredentials)).toEqual(
-                    expect.objectContaining({ isAuthenticated: true })
-                );
+                    expect(
+                        await userService.authenticate(userCredentials)
+                    ).toEqual(
+                        expect.objectContaining({ isAuthenticated: true })
+                    );
+                });
+            });
+            describe('and provided incorrect credentials', () => {
+                it('does not authenticate the user', async () => {
+                    const repository = new InMemoryUserRepositoryFactory();
+                    const userService = new UserService(repository);
+                    await userService.create({
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        email: 'john.doe@gmail.com',
+                        password: 'Hello123'
+                    });
+                    const userCredentials = {
+                        email: 'john.doe@gmail.com',
+                        password: 'Hello1234'
+                    };
+
+                    expect(
+                        userService.authenticate(userCredentials)
+                    ).rejects.toThrow(
+                        new AuthenticationFailedError('Authentication failed')
+                    );
+                });
             });
         });
-        describe('and provided incorrect credentials', () => {
-            it('does not authenticate the user', async () => {
-                const repository = new InMemoryUserRepositoryFactory();
-                const userService = new UserService(repository);
-                await userService.create({
-                    firstName: 'John',
-                    lastName: 'Doe',
-                    email: 'john.doe@gmail.com',
-                    password: 'Hello123'
+        describe('given an unregistered user', () => {
+            describe('when an authentication attempt is made', () => {
+                it('throws an authentication failed error', async () => {
+                    const repository = new InMemoryUserRepositoryFactory();
+                    const userService = new UserService(repository);
+                    const userCredentials = {
+                        email: 'dung.eater@gmail.com',
+                        password: 'DungEater123'
+                    };
+                    expect(
+                        userService.authenticate(userCredentials)
+                    ).rejects.toThrow(
+                        new AuthenticationFailedError('Authentication failed')
+                    );
                 });
-                const userCredentials = {
-                    email: 'john.doe@gmail.com',
-                    password: 'Hello1234'
-                };
-
-                expect(
-                    userService.authenticate(userCredentials)
-                ).rejects.toThrow(
-                    new AuthenticationFailedError('Authentication failed')
-                );
             });
         });
     });
-    describe('given an unregistered user', () => {
-        describe('when an authentication attempt is made', () => {
-            it('throws an authentication failed error', async () => {
+    describe('retrieve user details', () => {
+        describe('given a user does not exist', () => {
+            it('throws an UserNotFound error', () => {
                 const repository = new InMemoryUserRepositoryFactory();
                 const userService = new UserService(repository);
-                const userCredentials = {
-                    email: 'dung.eater@gmail.com',
-                    password: 'DungEater123'
-                };
-                expect(
-                    userService.authenticate(userCredentials)
-                ).rejects.toThrow(
-                    new AuthenticationFailedError('Authentication failed')
+                const userEmail = 'thomas.ho@gmail.com';
+                expect(userService.getUserDetails(userEmail)).rejects.toThrow(
+                    new UserNotFoundError('User does not exist.')
                 );
             });
         });
