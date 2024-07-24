@@ -242,16 +242,59 @@ describe('user-integration', () => {
                     ]);
                 });
             });
+            describe('and their token is expired', () => {
+                it.todo('responds with http status code 401');
+            });
+            describe('and their token is valid', () => {
+                it('responds with the user details', async () => {
+                    const {
+                        publicKey: jwtPublicKey,
+                        privateKey: jwtPrivateKey
+                    } = await generateKeyPair('PS256');
+                    const app = appFactory({
+                        routerParameters: {
+                            stage: 'test',
+                            keySet: {
+                                jwtPublicKey
+                            }
+                        }
+                    });
+                    const userDetails = {
+                        firstName: 'Dung',
+                        lastName: 'Eater',
+                        email: 'dung.eater@gmail.com',
+                        password: 'IAmTheDungEater'
+                    };
+                    await request(app).post('/user/signup').send(userDetails);
+                    const userCredentials = {
+                        username: 'dung.eater@gmail.com',
+                        password: 'IAmTheDungEater'
+                    };
+                    const loginResponse = await request(app)
+                        .post('/user/login')
+                        .send(userCredentials);
+                    const authorizationHeaderField =
+                        loginResponse.header.authorization;
+
+                    const response = await request(app)
+                        .get('/user')
+                        .set('Authorization', authorizationHeaderField)
+                        .send();
+
+                    const userAccountDetails = {
+                        firstName: 'Dung',
+                        lastName: 'Eater',
+                        email: 'dung.eater@gmail.com'
+                    };
+                    expect(response.statusCode).toBe(200);
+                    expect(response.body).toEqual(userAccountDetails);
+                });
+            });
         });
     });
     describe('logout', () => {
         describe('given a user is logged in', () => {
             it.skip('their session token is invalidated upon logout', async () => {
-                jest.useFakeTimers({
-                    doNotFake: ['setImmediate']
-                });
-                const dateInMilliseconds = Date.now();
-                jest.setSystemTime(dateInMilliseconds);
                 const { publicKey: jwtPublicKey, privateKey: jwtPrivateKey } =
                     await generateKeyPair('PS256');
                 const app = appFactory({
@@ -276,15 +319,12 @@ describe('user-integration', () => {
                 const loginResponse = await request(app)
                     .post('/user/login')
                     .send(userCredentials);
-                const jwt = pipe<[Response], string, Array<string>, string>(
-                    path(['headers', 'authorization']),
-                    split(' '),
-                    last
-                )(loginResponse);
+                const authorizationHeaderField =
+                    loginResponse.header.authorization;
 
                 await request(app)
                     .post('/user/logout')
-                    .set('Authorization', `Bearer ${jwt}`)
+                    .set('Authorization', authorizationHeaderField)
                     .send();
 
                 const protectedResponse = await request(app)
@@ -295,8 +335,6 @@ describe('user-integration', () => {
                 expect(protectedResponse.body).toEqual({
                     error: 'Unauthorized'
                 });
-
-                jest.useRealTimers();
             });
         });
     });
