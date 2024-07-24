@@ -68,5 +68,11 @@ export default class UserService implements UserServiceInterface {
         if (persistedUser === undefined) {
             throw new UserNotFoundError('User does not exist.');
         }
+
+        return {
+            firstName: persistedUser.firstName,
+            lastName: persistedUser.lastName,
+            email: persistedUser.email
+        };
     }
 }
