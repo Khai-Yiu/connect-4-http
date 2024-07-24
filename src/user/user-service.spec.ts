@@ -137,15 +137,35 @@ describe('user-service', () => {
             });
         });
     });
-    describe('retrieve user details', () => {
-        describe('given a user does not exist', () => {
-            it('throws an UserNotFound error', () => {
+    describe('get user details', () => {
+        describe('given the email for a user that does not exist', () => {
+            it('throws an UserNotFound error', async () => {
                 const repository = new InMemoryUserRepositoryFactory();
                 const userService = new UserService(repository);
                 const userEmail = 'thomas.ho@gmail.com';
                 expect(userService.getUserDetails(userEmail)).rejects.toThrow(
                     new UserNotFoundError('User does not exist.')
                 );
+            });
+        });
+        describe('given the email for a user that exists', () => {
+            it('returns the user details', async () => {
+                const repository = new InMemoryUserRepositoryFactory();
+                const userService = new UserService(repository);
+                const userDetails = {
+                    firstName: 'Thomas',
+                    lastName: 'Ho',
+                    email: 'thomas.ho@gmail.com',
+                    password: '1231232121321'
+                };
+                await userService.create(userDetails);
+                expect(
+                    await userService.getUserDetails(userDetails.email)
+                ).toEqual({
+                    firstName: 'Thomas',
+                    lastName: 'Ho',
+                    email: 'thomas.ho@gmail.com'
+                });
             });
         });
     });
