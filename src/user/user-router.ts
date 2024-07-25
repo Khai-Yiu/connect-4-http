@@ -1,9 +1,9 @@
-import express, { RequestHandler, Router } from 'express';
+import express, { RequestHandler } from 'express';
 import UserService, { UserServiceInterface } from '@/user/user-service';
 import validateUserSignupRequestBody from '@/validate-user-signup-request-body';
-import { JwtPublicKey, KeySet } from '@/global';
-import { EncryptJWT, generateKeyPair } from 'jose';
-import { RouterTypes } from './resolve-routers';
+import { JwtPrivateKey, JwtPublicKey, KeySet } from '@/global';
+import { EncryptJWT } from 'jose';
+import getIsUserAuthorized from '@/get-is-user-authorized';
 
 type User = {
     firstName: string;
@@ -13,14 +13,18 @@ type User = {
 };
 
 const userDetailsRequestHandlerFactory =
-    (userService: UserService): RequestHandler =>
+    (userService: UserService, privateKey: JwtPrivateKey): RequestHandler =>
     async (req, res, next) => {
         const { email } = req.body;
         const authorizationToken = req.headers.authorization;
-        const isAuthorized = false;
-        const userDetails = 1;
+        const isAuthorized = await getIsUserAuthorized(
+            authorizationToken,
+            privateKey,
+            email
+        );
 
         if (isAuthorized) {
+            const userDetails = await userService.getUserDetails(email);
             res.status(200).send(userDetails);
         } else {
             res.status(401).send({
@@ -33,7 +37,7 @@ const userDetailsRequestHandlerFactory =
 
 const loginRequestHandlerFactory = (
     userService: UserServiceInterface,
-    jwtPublicKey?: JwtPublicKey
+    publicKey?: JwtPublicKey
 ): RequestHandler => {
     return async (req, res, next) => {
         await userService
@@ -57,8 +61,8 @@ const loginRequestHandlerFactory = (
                     .setExpirationTime('1 day from now')
                     .setNotBefore('0 sec from now')
                     .setSubject(username)
-                    .encrypt(jwtPublicKey);
-                res.setHeader('Authorization', `Basic ${jwt}`).send();
+                    .encrypt(publicKey);
+                res.setHeader('Authorization', jwt).send();
             })
             .catch(() =>
                 res.status(403).send({ errors: ['Login attempt failed.'] })
@@ -87,7 +91,10 @@ const registerRequestHandlerFactory =
 
 const userRouterFactory = (userService: UserService, keySet: KeySet) => {
     const userRouter = express.Router();
-    userRouter.get('/', userDetailsRequestHandlerFactory(userService));
+    userRouter.get(
+        '/',
+        userDetailsRequestHandlerFactory(userService, keySet.privateKey)
+    );
     userRouter.post('/signup', registerRequestHandlerFactory(userService));
     userRouter.post(
         '/login',

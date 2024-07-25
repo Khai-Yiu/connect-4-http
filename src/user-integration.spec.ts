@@ -219,14 +219,15 @@ describe('user-integration', () => {
                 it.todo('responds with http status code 401');
             });
             describe('and their token is valid', () => {
-                it.skip('responds with the user details', async () => {
+                it('responds with the user details', async () => {
                     const { publicKey, privateKey } =
                         await generateKeyPair('PS256');
                     const app = appFactory({
                         routerParameters: {
                             stage: 'test',
                             keySet: {
-                                publicKey
+                                publicKey,
+                                privateKey
                             }
                         }
                     });

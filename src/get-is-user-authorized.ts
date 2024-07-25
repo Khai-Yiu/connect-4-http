@@ -1,4 +1,4 @@
-import { jwtDecrypt, jwtVerify, KeyLike } from 'jose';
+import { jwtDecrypt, KeyLike } from 'jose';
 import { JWEInvalid, JWTExpired } from 'jose/errors';
 
 const getIsUserAuthorized = async (
@@ -12,6 +12,8 @@ const getIsUserAuthorized = async (
         if (payload.username !== email) {
             return false;
         }
+
+        return true;
     } catch (error) {
         if (error instanceof JWEInvalid || error instanceof JWTExpired) {
             return false;
