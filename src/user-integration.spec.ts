@@ -4,7 +4,7 @@ import { generateKeyPair, jwtDecrypt } from 'jose';
 import { last, path, pipe, split } from 'ramda';
 
 describe('user-integration', () => {
-    const app = appFactory({
+    let app = appFactory({
         routerParameters: {
             stage: 'test',
             keySet: (async () => await generateKeyPair('RS256'))()
@@ -85,7 +85,7 @@ describe('user-integration', () => {
                     jest.setSystemTime(dateInMilliseconds);
                     const { publicKey, privateKey } =
                         await generateKeyPair('PS256');
-                    let app = appFactory({
+                    app = appFactory({
                         routerParameters: {
                             stage: 'test',
                             keySet: {
@@ -139,9 +139,7 @@ describe('user-integration', () => {
             });
             describe('and they provide incorrect credentials', () => {
                 it('responds with http status code 403', async () => {
-                    const { publicKey, privateKey } =
-                        await generateKeyPair('PS256');
-                    const app = appFactory({
+                    app = appFactory({
                         routerParameters: {
                             stage: 'test',
                             keySet: await generateKeyPair('PS256')
@@ -156,7 +154,7 @@ describe('user-integration', () => {
                     await request(app).post('/user/signup').send(userDetails);
                     const userCredentials = {
                         username: 'dung.eater@gmail.com',
-                        password: 'Hello124'
+                        password: 'Hello121'
                     };
                     const response = await request(app)
                         .post('/user/login')
@@ -171,7 +169,7 @@ describe('user-integration', () => {
         });
         describe('given credentials for a user that does not exist', () => {
             it('responds with a http status code 403', async () => {
-                const app = appFactory({
+                app = appFactory({
                     routerParameters: {
                         stage: 'test',
                         keySet: await generateKeyPair('PS256')
@@ -216,13 +214,58 @@ describe('user-integration', () => {
                 });
             });
             describe('and their token is expired', () => {
-                it.todo('responds with http status code 401');
+                it('responds with http status code 401', async () => {
+                    jest.useFakeTimers({
+                        doNotFake: ['setImmediate']
+                    });
+
+                    const { publicKey, privateKey } =
+                        await generateKeyPair('PS256');
+                    app = appFactory({
+                        routerParameters: {
+                            stage: 'test',
+                            keySet: {
+                                publicKey,
+                                privateKey
+                            }
+                        }
+                    });
+                    const userDetails = {
+                        firstName: 'Dung',
+                        lastName: 'Eater',
+                        email: 'dung.eater@gmail.com',
+                        password: 'IAmTheDungEater'
+                    };
+                    await request(app).post('/user/signup').send(userDetails);
+                    const userCredentials = {
+                        username: 'dung.eater@gmail.com',
+                        password: 'IAmTheDungEater'
+                    };
+                    const loginResponse = await request(app)
+                        .post('/user/login')
+                        .send(userCredentials);
+                    const authorizationHeaderField =
+                        loginResponse.header.authorization;
+                    const dateOfFollowingDayInMilliseconds =
+                        Date.now() + 60 * 60 * 24 * 1000;
+                    jest.setSystemTime(dateOfFollowingDayInMilliseconds);
+                    const response = await request(app)
+                        .get('/user')
+                        .set('Authorization', authorizationHeaderField)
+                        .send({ email: 'dung.eater@gmail.com' });
+
+                    expect(response.statusCode).toBe(401);
+                    expect(response.body.errors).toEqual([
+                        'You must be logged in to view your user details.'
+                    ]);
+                    jest.useRealTimers();
+                });
             });
             describe('and their token is valid', () => {
                 it('responds with the user details', async () => {
                     const { publicKey, privateKey } =
                         await generateKeyPair('PS256');
-                    const app = appFactory({
+                    app = appFactory({
                         routerParameters: {
                             stage: 'test',
                             keySet: {
@@ -260,52 +303,6 @@ describe('user-integration', () => {
                     };
                     expect(response.statusCode).toBe(200);
                     expect(response.body).toEqual(userAccountDetails);
-                });
-            });
-        });
-    });
-    describe('logout', () => {
-        describe('given a user is logged in', () => {
-            it.skip('their session token is invalidated upon logout', async () => {
-                const { publicKey: jwtPublicKey, privateKey: jwtPrivateKey } =
-                    await generateKeyPair('PS256');
-                const app = appFactory({
-                    routerParameters: {
-                        stage: 'test',
-                        keySet: {
-                            jwtPublicKey
-                        }
-                    }
-                });
-                const userDetails = {
-                    firstName: 'Dung',
-                    lastName: 'Eater',
-                    email: 'dung.eater@gmail.com',
-                    password: 'IAmTheDungEater'
-                };
-                await request(app).post('/user/signup').send(userDetails);
-                const userCredentials = {
-                    username: 'dung.eater@gmail.com',
-                    password: 'IAmTheDungEater'
-                };
-                const loginResponse = await request(app)
-                    .post('/user/login')
-                    .send(userCredentials);
-                const authorizationHeaderField =
-                    loginResponse.header.authorization;
-
-                await request(app)
-                    .post('/user/logout')
-                    .set('Authorization', authorizationHeaderField)
-                    .send();
-
-                const protectedResponse = await request(app)
-                    .get('/protected-endpoint')
-                    .set('Authorization', `Bearer ${jwt}`);
-
-                expect(protectedResponse.status).toBe(401);
-                expect(protectedResponse.body).toEqual({
-                    error: 'Unauthorized'
                 });
             });
         });

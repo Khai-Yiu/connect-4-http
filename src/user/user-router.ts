@@ -22,7 +22,6 @@ const userDetailsRequestHandlerFactory =
             privateKey,
             email
         );
-
         if (isAuthorized) {
             const userDetails = await userService.getUserDetails(email);
             res.status(200).send(userDetails);
