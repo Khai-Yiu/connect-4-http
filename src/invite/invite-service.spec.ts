@@ -1,7 +1,7 @@
 import InMemoryUserRepositoryFactory from '@/user/in-memory-user-repository';
-import userRouterFactory from '@/user/user-router';
 import UserService from '@/user/user-service';
-import InviteService from './invite-service';
+import InviteService from '@/invite/invite-service';
+import InMemoryInviteRepository from '@/invite/in-memory-invite-repository';
 
 const createUserServiceWithInviterAndInvitee = () => {
     const repository = new InMemoryUserRepositoryFactory();
@@ -27,7 +27,7 @@ const createUserServiceWithInviterAndInvitee = () => {
 describe('invite-service', () => {
     describe('given an inviter who is an existing user', () => {
         describe('and an invitee who is an existing user', () => {
-            it('creates an invite', () => {
+            it('creates an invite', async () => {
                 jest.useFakeTimers({ doNotFake: ['setImmediate'] });
                 const currentTime = Date.now();
                 jest.setSystemTime(currentTime);
@@ -38,7 +38,7 @@ describe('invite-service', () => {
                     userService,
                     inviteRepository
                 );
-                const inviteDetails = inviteService.create({
+                const inviteDetails = await inviteService.create({
                     inviter: 'player1@gmail.com',
                     invitee: 'player2@gmail.com'
                 });
@@ -50,6 +50,7 @@ describe('invite-service', () => {
                     exp: currentTime + lengthOfDayInMilliseconds,
                     status: 'PENDING'
                 });
+                jest.useRealTimers();
             });
         });
     });
