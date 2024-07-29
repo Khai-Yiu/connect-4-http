@@ -43,6 +43,7 @@ describe('invite-integration', () => {
                     await request(app).post('/signup').send(inviteeDetails);
                     await request(app).post('/login').send(inviterCredentials);
                     const response = await request(app).post('/invite').send({
+                        inviter: 'player1@gmail.com',
                         invitee: 'player2@gmail.com'
                     });
                     const lengthOfDayInMilliseconds = 60 * 60 * 24 * 1000;
@@ -51,8 +52,10 @@ describe('invite-integration', () => {
                         uuid: expect.toBeUuid(),
                         inviter: 'player1@gmail.com',
                         invitee: 'player2@gmail.com',
-                        exp: currentTime + lengthOfDayInMilliseconds
+                        exp: currentTime + lengthOfDayInMilliseconds,
+                        status: 'PENDING'
                     });
+                    jest.useRealTimers();
                 });
             });
         });

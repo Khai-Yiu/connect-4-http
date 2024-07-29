@@ -2,14 +2,20 @@ import request, { Response } from 'supertest';
 import appFactory from '@/app';
 import { generateKeyPair, jwtDecrypt } from 'jose';
 import { last, path, pipe, split } from 'ramda';
+import { App } from 'supertest/types';
 
 describe('user-integration', () => {
-    let app = appFactory({
-        routerParameters: {
-            stage: 'test',
-            keySet: (async () => await generateKeyPair('RS256'))()
-        }
+    let app: App;
+
+    beforeEach(async () => {
+        app = appFactory({
+            routerParameters: {
+                stage: 'test',
+                keySet: await generateKeyPair('RS256')
+            }
+        });
     });
+
     describe('signup', () => {
         describe('given the user does not exist', () => {
             it('creates a user', async () => {

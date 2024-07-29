@@ -6,7 +6,7 @@ describe('get-is-user-authorized', () => {
         describe('which cannot be decrypted using the private key', () => {
             it('returns false', async () => {
                 const { privateKey } = await generateKeyPair('RS256');
-                const token = '121321kek32di323f3';
+                const token = 'basic 121321kek32di323f3';
                 expect(
                     await getIsUserAuthorized(token, privateKey, 'hi@gmail.com')
                 ).toBe(false);
@@ -35,15 +35,17 @@ describe('get-is-user-authorized', () => {
             it('returns false', async () => {
                 const { publicKey, privateKey } =
                     await generateKeyPair('RS256');
-                const token = await new EncryptJWT({
-                    username: 'bye@gmail.com'
-                })
-                    .setProtectedHeader({
-                        alg: 'RSA-OAEP-256',
-                        enc: 'A128CBC-HS256'
+                const token =
+                    'basic ' +
+                    (await new EncryptJWT({
+                        username: 'bye@gmail.com'
                     })
-                    .setExpirationTime('1 day from now')
-                    .encrypt(publicKey);
+                        .setProtectedHeader({
+                            alg: 'RSA-OAEP-256',
+                            enc: 'A128CBC-HS256'
+                        })
+                        .setExpirationTime('1 day from now')
+                        .encrypt(publicKey));
 
                 expect(
                     await getIsUserAuthorized(token, privateKey, 'hi@gmail.com')
@@ -54,16 +56,18 @@ describe('get-is-user-authorized', () => {
             it('returns true', async () => {
                 const { publicKey, privateKey } =
                     await generateKeyPair('RS256');
-                const token = await new EncryptJWT({
-                    username: 'hi@gmail.com'
-                })
-                    .setProtectedHeader({
-                        alg: 'RSA-OAEP-256',
-                        typ: 'JWT',
-                        enc: 'A256GCM'
+                const token =
+                    'basic ' +
+                    (await new EncryptJWT({
+                        username: 'hi@gmail.com'
                     })
-                    .setExpirationTime('1 day from now')
-                    .encrypt(publicKey);
+                        .setProtectedHeader({
+                            alg: 'RSA-OAEP-256',
+                            typ: 'JWT',
+                            enc: 'A256GCM'
+                        })
+                        .setExpirationTime('1 day from now')
+                        .encrypt(publicKey));
                 expect(
                     await getIsUserAuthorized(token, privateKey, 'hi@gmail.com')
                 ).toBe(true);

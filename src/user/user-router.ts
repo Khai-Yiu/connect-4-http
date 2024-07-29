@@ -61,7 +61,7 @@ const loginRequestHandlerFactory = (
                     .setNotBefore('0 sec from now')
                     .setSubject(username)
                     .encrypt(publicKey);
-                res.setHeader('Authorization', jwt).send();
+                res.setHeader('Authorization', `basic ${jwt}`).send();
             })
             .catch(() =>
                 res.status(403).send({ errors: ['Login attempt failed.'] })

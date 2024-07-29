@@ -14,6 +14,7 @@ const appFactory = ({ routerParameters }: AppParameters) => {
     const app = express();
     app.use(express.json());
     app.use('/user', routers[RouterTypes.userRouter]);
+    app.use('/invite', routers[RouterTypes.inviteRouter]);
 
     return app;
 };

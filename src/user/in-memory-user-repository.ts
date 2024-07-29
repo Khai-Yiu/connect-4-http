@@ -1,5 +1,5 @@
-import { CreateUserDetails } from '@/user/user-service';
-import { UserRepository } from '@/user/user-repository';
+import { CreateUserDetails } from '@/user/user-service.d';
+import { UserRepository } from '@/user/in-memory-user-repository.d';
 import { Uuid } from '@/global';
 
 export type PersistedUser = {
