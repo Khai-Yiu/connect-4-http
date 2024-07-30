@@ -39,6 +39,64 @@ describe('invite-integration', () => {
     describe('given an inviter that is an existing user', () => {
         describe('and the inviter is logged in', () => {
             describe('and an invitee that is an existing user', () => {
+                describe('when the inviter sends an invitation on behalf of another user', () => {
+                    it('return http status code 401', async () => {
+                        jest.useFakeTimers({ doNotFake: ['setImmediate'] });
+                        const currentTime = Date.now();
+                        jest.setSystemTime(currentTime);
+
+                        const inviterDetails = {
+                            firstName: 'Player',
+                            lastName: 'One',
+                            email: 'player1@gmail.com',
+                            password: 'Hello123'
+                        };
+                        const inviteeDetails = {
+                            firstName: 'Player',
+                            lastName: 'Two',
+                            email: 'player2@gmail.com',
+                            password: 'Hello123'
+                        };
+                        const thirdUserDetails = {
+                            firstName: 'Player',
+                            lastName: 'Three',
+                            email: 'player3@gmail.com',
+                            password: 'Hello123'
+                        };
+                        const inviterCredentials = {
+                            username: 'player1@gmail.com',
+                            password: 'Hello123'
+                        };
+                        await request(app)
+                            .post('/user/signup')
+                            .send(inviterDetails);
+                        await request(app)
+                            .post('/user/signup')
+                            .send(inviteeDetails);
+                        await request(app)
+                            .post('/user/signup')
+                            .send(thirdUserDetails);
+                        const loginResponse = await request(app)
+                            .post('/user/login')
+                            .send(inviterCredentials);
+                        const response = await request(app)
+                            .post('/invite')
+                            .set(
+                                'Authorization',
+                                loginResponse.headers.authorization
+                            )
+                            .send({
+                                inviter: 'player3@gmail.com',
+                                invitee: 'player2@gmail.com'
+                            });
+
+                        expect(response.statusCode).toBe(401);
+                        expect(response.body.errors).toEqual([
+                            'You cannot send an invite.'
+                        ]);
+                        jest.useRealTimers();
+                    });
+                });
                 describe('when the inviter sends an invitation to the invitee', () => {
                     it('creates an invitation', async () => {
                         jest.useFakeTimers({ doNotFake: ['setImmediate'] });
