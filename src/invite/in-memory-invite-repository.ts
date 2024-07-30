@@ -3,12 +3,14 @@ import {
     InviteCreationDetails
 } from '@/invite/in-memory-invite-repository.d';
 import { Uuid } from '@/global';
+import { InviteStatus } from '@/invite/invite-service.d';
 
 export type PersistedInvite = {
     uuid: String;
     inviter: String;
     invitee: String;
     exp: number;
+    status: InviteStatus;
 };
 
 export default class InMemoryInviteRepository implements InviteRepository {
@@ -18,15 +20,16 @@ export default class InMemoryInviteRepository implements InviteRepository {
         this.invites = new Map();
     }
 
-    async create({ inviter, invitee, exp }: InviteCreationDetails) {
+    async create({ inviter, invitee, exp, status }: InviteCreationDetails) {
         const uuid = crypto.randomUUID();
-        this.invites.set(uuid, { uuid, inviter, invitee, exp });
+        this.invites.set(uuid, { uuid, inviter, invitee, exp, status });
 
         return {
             uuid,
             inviter,
             invitee,
-            exp
+            exp,
+            status
         };
     }
 }
