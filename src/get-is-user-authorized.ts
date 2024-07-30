@@ -2,12 +2,13 @@ import { jwtDecrypt, KeyLike } from 'jose';
 import { JWEInvalid, JWTExpired } from 'jose/errors';
 
 const getIsUserAuthorized = async (
-    token: string,
+    authorizationField: string,
     privateKey: KeyLike,
     email: string
 ) => {
     try {
-        const { payload } = await jwtDecrypt(token.slice(6), privateKey);
+        const token = authorizationField.split(' ')[1];
+        const { payload } = await jwtDecrypt(token, privateKey);
 
         if (payload.username !== email) {
             return false;
@@ -18,6 +19,8 @@ const getIsUserAuthorized = async (
         if (error instanceof JWEInvalid || error instanceof JWTExpired) {
             return false;
         }
+
+        return false;
     }
 };
 

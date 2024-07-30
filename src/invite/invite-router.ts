@@ -5,19 +5,27 @@ import InviteService from '@/invite/invite-service';
 const createInvitationRequestHandler =
     (inviteService: InviteService): RequestHandler =>
     async (req, res, next) => {
-        const { inviter, invitee } = req.body;
-        const { uuid, exp, status } = await inviteService.create({
-            invitee,
-            inviter
-        });
-        const invitationDetails = {
-            uuid,
-            inviter,
-            invitee,
-            exp,
-            status
-        };
-        res.status(201).send({ invite: invitationDetails });
+        if (!res.locals.claims?.email) {
+            res.status(401).send({
+                errors: ['You must be logged in to send an invite.']
+            });
+        } else {
+            const { inviter, invitee } = req.body;
+            const { uuid, exp, status } = await inviteService.create({
+                invitee,
+                inviter
+            });
+            const invitationDetails = {
+                uuid,
+                inviter,
+                invitee,
+                exp,
+                status
+            };
+
+            res.status(201).send({ invite: invitationDetails });
+        }
+
         next();
     };
 

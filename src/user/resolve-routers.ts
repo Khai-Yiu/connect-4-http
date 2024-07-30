@@ -14,7 +14,7 @@ export enum RouterTypes {
 
 export type RouterParameters = {
     stage: Stage;
-    keySet?: KeySet;
+    keySet: KeySet;
 };
 
 export const resolveRouters = ({

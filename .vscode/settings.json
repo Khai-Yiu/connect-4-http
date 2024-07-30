@@ -1,4 +1,7 @@
 {
     "cSpell.words": ["Lamington", "outfile"],
-    "cSpell.ignoreWords": ["lolololololololololol"]
+    "cSpell.ignoreWords": ["lolololololololololol"],
+    "editor.codeActionsOnSave": {
+        "source.removeUnusedImports": "always"
+    }
 }

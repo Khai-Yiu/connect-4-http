@@ -47,7 +47,7 @@ describe('invite-integration', () => {
 
                         const inviterDetails = {
                             firstName: 'Player',
-                            lastName: 'Two',
+                            lastName: 'One',
                             email: 'player1@gmail.com',
                             password: 'Hello123'
                         };
@@ -58,16 +58,24 @@ describe('invite-integration', () => {
                             password: 'Hello123'
                         };
                         const inviterCredentials = {
-                            email: 'player1@gmail.com',
+                            username: 'player1@gmail.com',
                             password: 'Hello123'
                         };
-                        await request(app).post('/signup').send(inviterDetails);
-                        await request(app).post('/signup').send(inviteeDetails);
                         await request(app)
-                            .post('/login')
+                            .post('/user/signup')
+                            .send(inviterDetails);
+                        await request(app)
+                            .post('/user/signup')
+                            .send(inviteeDetails);
+                        const loginResponse = await request(app)
+                            .post('/user/login')
                             .send(inviterCredentials);
                         const response = await request(app)
                             .post('/invite')
+                            .set(
+                                'Authorization',
+                                loginResponse.headers.authorization
+                            )
                             .send({
                                 inviter: 'player1@gmail.com',
                                 invitee: 'player2@gmail.com'

@@ -15,20 +15,14 @@ type User = {
 const userDetailsRequestHandlerFactory =
     (userService: UserService, privateKey: JwtPrivateKey): RequestHandler =>
     async (req, res, next) => {
-        const { email } = req.body;
-        const authorizationToken = req.headers.authorization;
-        const isAuthorized = await getIsUserAuthorized(
-            authorizationToken,
-            privateKey,
-            email
-        );
-        if (isAuthorized) {
-            const userDetails = await userService.getUserDetails(email);
-            res.status(200).send(userDetails);
-        } else {
+        if (!res.locals.claims?.email) {
             res.status(401).send({
                 errors: ['You must be logged in to view your user details.']
             });
+        } else {
+            const { email } = req.body;
+            const userDetails = await userService.getUserDetails(email);
+            res.status(200).send(userDetails);
         }
 
         next();
@@ -61,7 +55,7 @@ const loginRequestHandlerFactory = (
                     .setNotBefore('0 sec from now')
                     .setSubject(username)
                     .encrypt(publicKey);
-                res.setHeader('Authorization', `basic ${jwt}`).send();
+                res.setHeader('Authorization', `Bearer ${jwt}`).send();
             })
             .catch(() =>
                 res.status(403).send({ errors: ['Login attempt failed.'] })

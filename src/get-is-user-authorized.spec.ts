@@ -36,7 +36,7 @@ describe('get-is-user-authorized', () => {
                 const { publicKey, privateKey } =
                     await generateKeyPair('RS256');
                 const token =
-                    'basic ' +
+                    'Bearer ' +
                     (await new EncryptJWT({
                         username: 'bye@gmail.com'
                     })
