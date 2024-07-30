@@ -1,37 +1,64 @@
 import express from 'express';
 import { RequestHandler } from 'express-serve-static-core';
 import InviteService from '@/invite/invite-service';
+import { JwtPrivateKey, KeySet } from '@/global';
 
-const createInvitationRequestHandler =
+const createCreateInvitationRequestHandler =
     (inviteService: InviteService): RequestHandler =>
     async (req, res, next) => {
-        if (!res.locals.claims?.email) {
-            res.status(401).send({
-                errors: ['You must be logged in to send an invite.']
-            });
-        } else {
-            const { inviter, invitee } = req.body;
-            const { uuid, exp, status } = await inviteService.create({
-                invitee,
-                inviter
-            });
-            const invitationDetails = {
-                uuid,
-                inviter,
-                invitee,
-                exp,
-                status
-            };
+        const { inviter, invitee } = req.body;
+        const { uuid, exp, status } = await inviteService.create({
+            invitee,
+            inviter
+        });
+        const invitationDetails = {
+            uuid,
+            inviter,
+            invitee,
+            exp,
+            status
+        };
 
-            res.status(201).send({ invite: invitationDetails });
-        }
+        res.status(201).send({ invite: invitationDetails });
 
         next();
     };
 
-const inviteRouterFactory = (inviteService: InviteService) => {
+const createInviteAuthorizationMiddleware: RequestHandler = (
+    req,
+    res,
+    next
+) => {
+    const { inviter } = req.body;
+
+    if (inviter === res.locals.claims.email) {
+        next();
+    } else {
+        res.status(401).send({
+            errors: ['You can not send an invite as another user.']
+        });
+    }
+};
+
+const createAuthorizationMiddleware =
+    (privateKey: JwtPrivateKey): RequestHandler =>
+    async (req, res, next) => {
+        res.locals.claims.email
+            ? next()
+            : res.status(401).send({
+                  errors: ['You must be logged in to send an invite.']
+              });
+    };
+
+const inviteRouterFactory = (inviteService: InviteService, keySet: KeySet) => {
     const inviteRouter = express.Router();
-    inviteRouter.post('/', createInvitationRequestHandler(inviteService));
+
+    inviteRouter.use(createAuthorizationMiddleware(keySet.privateKey));
+    inviteRouter.post(
+        '/',
+        createInviteAuthorizationMiddleware,
+        createCreateInvitationRequestHandler(inviteService)
+    );
 
     return inviteRouter;
 };

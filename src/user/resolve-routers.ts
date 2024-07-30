@@ -2,7 +2,7 @@ import { Router } from 'express';
 import InMemoryUserRepositoryFactory from '@/user/in-memory-user-repository';
 import userRouterFactory from '@/user/user-router';
 import UserService from '@/user/user-service';
-import { Stage, JwtPublicKey, KeySet } from '@/global';
+import { Stage, KeySet } from '@/global';
 import InviteService from '@/invite/invite-service';
 import inviteRouterFactory from '@/invite/invite-router';
 import InMemoryInviteRepository from '@/invite/in-memory-invite-repository';
@@ -34,6 +34,6 @@ export const resolveRouters = ({
 
     return {
         [RouterTypes.userRouter]: userRouterFactory(userService, keySet),
-        [RouterTypes.inviteRouter]: inviteRouterFactory(inviteService)
+        [RouterTypes.inviteRouter]: inviteRouterFactory(inviteService, keySet)
     };
 };

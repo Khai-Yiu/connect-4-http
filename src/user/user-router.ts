@@ -3,7 +3,6 @@ import UserService, { UserServiceInterface } from '@/user/user-service';
 import validateUserSignupRequestBody from '@/validate-user-signup-request-body';
 import { JwtPrivateKey, JwtPublicKey, KeySet } from '@/global';
 import { EncryptJWT } from 'jose';
-import getIsUserAuthorized from '@/get-is-user-authorized';
 
 type User = {
     firstName: string;
@@ -15,7 +14,7 @@ type User = {
 const userDetailsRequestHandlerFactory =
     (userService: UserService, privateKey: JwtPrivateKey): RequestHandler =>
     async (req, res, next) => {
-        if (!res.locals.claims?.email) {
+        if (!res.locals.claims.email) {
             res.status(401).send({
                 errors: ['You must be logged in to view your user details.']
             });
@@ -67,7 +66,7 @@ const loginRequestHandlerFactory = (
 
 const registerRequestHandlerFactory =
     (userService: UserService): RequestHandler =>
-    (req, res, next) => {
+    async (req, res, next) => {
         const { isValid, errors } = validateUserSignupRequestBody(req.body);
 
         if (!isValid) {
@@ -75,7 +74,7 @@ const registerRequestHandlerFactory =
         }
 
         const { firstName, lastName, email, password } = req.body;
-        userService
+        await userService
             .create({ firstName, lastName, email, password })
             .then((user: User) => res.status(201).send(user))
             .catch((error) => res.status(403).send({ errors: [error.message] }))

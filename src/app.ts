@@ -1,10 +1,9 @@
-import express, { RequestHandler, Router } from 'express';
+import express, { RequestHandler } from 'express';
 import {
     resolveRouters,
     RouterParameters,
     RouterTypes
 } from '@/user/resolve-routers';
-import getIsUserAuthorized from './get-is-user-authorized';
 import { JwtPrivateKey } from './global';
 import { jwtDecrypt } from 'jose';
 
@@ -23,10 +22,19 @@ const createAuthenticationMiddleware =
                     authorizationField.split(' ')[1],
                     privateKey
                 );
+
                 res.locals.claims = {
                     email: payload.username
                 };
-            } catch (error) {}
+            } catch (error) {
+                res.locals.claims = {
+                    email: undefined
+                };
+            }
+        } else {
+            res.locals.claims = {
+                email: undefined
+            };
         }
 
         next();

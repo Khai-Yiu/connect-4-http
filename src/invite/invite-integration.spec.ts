@@ -57,7 +57,7 @@ describe('invite-integration', () => {
                             email: 'player2@gmail.com',
                             password: 'Hello123'
                         };
-                        const thirdUserDetails = {
+                        const unauthorizedInviterDetails = {
                             firstName: 'Player',
                             lastName: 'Three',
                             email: 'player3@gmail.com',
@@ -75,7 +75,7 @@ describe('invite-integration', () => {
                             .send(inviteeDetails);
                         await request(app)
                             .post('/user/signup')
-                            .send(thirdUserDetails);
+                            .send(unauthorizedInviterDetails);
                         const loginResponse = await request(app)
                             .post('/user/login')
                             .send(inviterCredentials);
@@ -86,13 +86,14 @@ describe('invite-integration', () => {
                                 loginResponse.headers.authorization
                             )
                             .send({
+                                email: 'player3@gmail.com',
                                 inviter: 'player3@gmail.com',
                                 invitee: 'player2@gmail.com'
                             });
 
                         expect(response.statusCode).toBe(401);
                         expect(response.body.errors).toEqual([
-                            'You cannot send an invite.'
+                            'You can not send an invite as another user.'
                         ]);
                         jest.useRealTimers();
                     });
@@ -135,6 +136,7 @@ describe('invite-integration', () => {
                                 loginResponse.headers.authorization
                             )
                             .send({
+                                email: 'player1@gmail.com',
                                 inviter: 'player1@gmail.com',
                                 invitee: 'player2@gmail.com'
                             });
