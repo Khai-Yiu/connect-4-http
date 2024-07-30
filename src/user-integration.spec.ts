@@ -6,12 +6,17 @@ import { App } from 'supertest/types';
 
 describe('user-integration', () => {
     let app: App;
+    let jwtKeyPair;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
+        jwtKeyPair = await generateKeyPair('RS256');
+    });
+
+    beforeEach(() => {
         app = appFactory({
             routerParameters: {
                 stage: 'test',
-                keySet: await generateKeyPair('RS256')
+                keySet: jwtKeyPair
             }
         });
     });
@@ -89,17 +94,6 @@ describe('user-integration', () => {
                     });
                     const dateInMilliseconds = Date.now();
                     jest.setSystemTime(dateInMilliseconds);
-                    const { publicKey, privateKey } =
-                        await generateKeyPair('PS256');
-                    app = appFactory({
-                        routerParameters: {
-                            stage: 'test',
-                            keySet: {
-                                publicKey,
-                                privateKey
-                            }
-                        }
-                    });
 
                     const userDetails = {
                         firstName: 'Dung',
@@ -122,7 +116,7 @@ describe('user-integration', () => {
                     )(loginResponse);
                     const { payload, protectedHeader } = await jwtDecrypt(
                         jwt,
-                        privateKey
+                        jwtKeyPair.privateKey
                     );
                     const durationOfADayInSeconds = 1 * 24 * 60 * 60;
                     const dateInSeconds = Math.trunc(dateInMilliseconds / 1000);
@@ -145,12 +139,6 @@ describe('user-integration', () => {
             });
             describe('and they provide incorrect credentials', () => {
                 it('responds with http status code 403', async () => {
-                    app = appFactory({
-                        routerParameters: {
-                            stage: 'test',
-                            keySet: await generateKeyPair('PS256')
-                        }
-                    });
                     const userDetails = {
                         firstName: 'Dung',
                         lastName: 'Eater',
@@ -175,12 +163,6 @@ describe('user-integration', () => {
         });
         describe('given credentials for a user that does not exist', () => {
             it('responds with a http status code 403', async () => {
-                app = appFactory({
-                    routerParameters: {
-                        stage: 'test',
-                        keySet: await generateKeyPair('PS256')
-                    }
-                });
                 const userCredentials = {
                     username: 'dung.eater@gmail.com',
                     password: 'Hello123'
@@ -225,17 +207,6 @@ describe('user-integration', () => {
                         doNotFake: ['setImmediate']
                     });
 
-                    const { publicKey, privateKey } =
-                        await generateKeyPair('PS256');
-                    app = appFactory({
-                        routerParameters: {
-                            stage: 'test',
-                            keySet: {
-                                publicKey,
-                                privateKey
-                            }
-                        }
-                    });
                     const userDetails = {
                         firstName: 'Dung',
                         lastName: 'Eater',
@@ -269,17 +240,6 @@ describe('user-integration', () => {
             });
             describe('and their token is valid', () => {
                 it('responds with the user details', async () => {
-                    const { publicKey, privateKey } =
-                        await generateKeyPair('PS256');
-                    app = appFactory({
-                        routerParameters: {
-                            stage: 'test',
-                            keySet: {
-                                publicKey,
-                                privateKey
-                            }
-                        }
-                    });
                     const userDetails = {
                         firstName: 'Dung',
                         lastName: 'Eater',

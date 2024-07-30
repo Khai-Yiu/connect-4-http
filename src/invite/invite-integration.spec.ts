@@ -5,12 +5,16 @@ import { App } from 'supertest/types';
 
 describe('invite-integration', () => {
     let app: App;
+    let jwtKeyPair;
 
+    beforeAll(async () => {
+        jwtKeyPair = await generateKeyPair('RS256');
+    });
     beforeEach(async () => {
         app = appFactory({
             routerParameters: {
                 stage: 'test',
-                keySet: await generateKeyPair('RS256')
+                keySet: jwtKeyPair
             }
         });
     });
