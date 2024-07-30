@@ -21,21 +21,21 @@ export default class InviteService implements InviteServiceInterface {
         this.inviteRepository = inviteRepository;
     }
 
-    async create({ inviter, invitee }: InviteCreationDetails) {
+    async create(inviteCreationDetails: InviteCreationDetails) {
         const lengthOfDayInMilliseconds = 60 * 60 * 24 * 1000;
-        const exp = Date.now() + lengthOfDayInMilliseconds;
-        const { uuid } = await this.inviteRepository.create({
-            inviter,
-            invitee,
-            exp
-        });
+        const { uuid, inviter, invitee, exp, status } =
+            await this.inviteRepository.create({
+                ...inviteCreationDetails,
+                exp: Date.now() + lengthOfDayInMilliseconds,
+                status: InviteStatus.PENDING
+            });
 
         return {
             uuid,
             inviter,
             invitee,
             exp,
-            status: InviteStatus.PENDING
+            status
         };
     }
 }
