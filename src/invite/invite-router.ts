@@ -2,6 +2,16 @@ import express from 'express';
 import { RequestHandler } from 'express-serve-static-core';
 import InviteService from '@/invite/invite-service';
 
+const createInboxRequestHandler =
+    (inviteService: InviteService): RequestHandler =>
+    async (req, res, next) => {
+        const email = res.locals.claims.email;
+        const invites = await inviteService.getInvites(email);
+
+        res.send({ invites });
+        next();
+    };
+
 const createCreateInvitationRequestHandler =
     (inviteService: InviteService): RequestHandler =>
     async (req, res, next) => {
@@ -62,6 +72,7 @@ const inviteRouterFactory = (inviteService: InviteService) => {
         createInviteAuthorizationMiddleware,
         createCreateInvitationRequestHandler(inviteService)
     );
+    inviteRouter.post('/inbox', createInboxRequestHandler(inviteService));
 
     return inviteRouter;
 };

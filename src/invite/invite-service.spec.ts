@@ -111,4 +111,43 @@ describe('invite-service', () => {
             });
         });
     });
+    describe('retrieving invites', () => {
+        describe('given an inviter who is an existing user', () => {
+            describe('and an invitee who is an existing user', () => {
+                describe('and the inviter invites the invitee', () => {
+                    it('returns all invites', async () => {
+                        jest.useFakeTimers({ doNotFake: ['setImmediate'] });
+                        const currentTime = Date.now();
+                        jest.setSystemTime(currentTime);
+
+                        const userService =
+                            await createUserServiceWithInviterAndInvitee();
+                        const inviteService = new InviteService(
+                            userService,
+                            new InMemoryInviteRepository()
+                        );
+                        const inviteDetails = await inviteService.create({
+                            inviter: 'player1@gmail.com',
+                            invitee: 'player2@gmail.com'
+                        });
+                        await inviteService.create(inviteDetails);
+                        const invites =
+                            await InviteService.getInvites('player2@gmail.com');
+                        const lengthOfDayInMilliseconds = 60 * 60 * 24 * 1000;
+
+                        expect(invites).toEqual([
+                            {
+                                uuid: expect.toBeUuid(),
+                                inviter: 'player1@gmail.com',
+                                invitee: 'player2@gmail.com',
+                                exp: currentTime - lengthOfDayInMilliseconds,
+                                status: 'PENDING'
+                            }
+                        ]);
+                        jest.useRealTimers();
+                    });
+                });
+            });
+        });
+    });
 });
