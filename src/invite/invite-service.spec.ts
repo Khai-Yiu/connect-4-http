@@ -1,6 +1,6 @@
 import InMemoryUserRepositoryFactory from '@/user/in-memory-user-repository';
 import UserService from '@/user/user-service';
-import InviteService from '@/invite/invite-service';
+import InviteService, { InvalidInvitationError } from '@/invite/invite-service';
 import InMemoryInviteRepository from '@/invite/in-memory-invite-repository';
 
 const createUserServiceWithInviterAndInvitee = () => {
@@ -8,7 +8,7 @@ const createUserServiceWithInviterAndInvitee = () => {
     const userService = new UserService(repository);
     const inviterDetails = {
         firstName: 'Player',
-        lastName: 'Two',
+        lastName: 'One',
         email: 'player1@gmail.com',
         password: 'Hello123'
     };
@@ -54,20 +54,26 @@ describe('invite-service', () => {
             });
         });
         describe('and the inviter and invitee are the same user', () => {
-            it('throws an InvalidInvitationError', () => {
+            it('throws an InvalidInvitationError', async () => {
+                const userService = new UserService({
+                    repository: new InMemoryUserRepositoryFactory()
+                });
                 const repository = new InMemoryInviteRepository();
-                const userService = createUserServiceWithInviterAndInvitee();
                 const inviteService = new InviteService(
                     userService,
                     repository
                 );
                 const inviteCreationDetails = {
                     inviter: 'player1@gmail.com',
-                    invitee: 'player2@gmail.com'
+                    invitee: 'player1@gmail.com'
                 };
                 expect(
                     inviteService.create(inviteCreationDetails)
-                ).rejects.toThrow('Users can not send invites to themselves.');
+                ).rejects.toThrow(
+                    new InvalidInvitationError(
+                        'Users can not send invites to themselves.'
+                    )
+                );
             });
         });
     });

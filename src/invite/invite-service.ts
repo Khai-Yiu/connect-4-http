@@ -12,6 +12,8 @@ interface InviteServiceInterface {
     ) => Promise<InviteDetails>;
 }
 
+export class InvalidInvitationError extends Error {}
+
 export default class InviteService implements InviteServiceInterface {
     userService: UserService;
     inviteRepository: InviteRepository;
@@ -22,6 +24,12 @@ export default class InviteService implements InviteServiceInterface {
     }
 
     async create(inviteCreationDetails: InviteCreationDetails) {
+        if (inviteCreationDetails.invitee === inviteCreationDetails.inviter) {
+            throw new InvalidInvitationError(
+                'Users can not send invites to themselves.'
+            );
+        }
+
         const lengthOfDayInMilliseconds = 60 * 60 * 24 * 1000;
         const { uuid, inviter, invitee, exp, status } =
             await this.inviteRepository.create({
