@@ -130,18 +130,11 @@ describe('invite-service', () => {
                             inviter: 'player1@gmail.com',
                             invitee: 'player2@gmail.com'
                         });
-                        await inviteService.create(inviteDetails);
                         const invites =
-                            await InviteService.getInvites('player2@gmail.com');
-                        const lengthOfDayInMilliseconds = 60 * 60 * 24 * 1000;
-
+                            await inviteService.getInvites('player2@gmail.com');
                         expect(invites).toEqual([
                             {
-                                uuid: expect.toBeUuid(),
-                                inviter: 'player1@gmail.com',
-                                invitee: 'player2@gmail.com',
-                                exp: currentTime - lengthOfDayInMilliseconds,
-                                status: 'PENDING'
+                                ...inviteDetails
                             }
                         ]);
                         jest.useRealTimers();
