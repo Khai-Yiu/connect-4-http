@@ -5,6 +5,7 @@ export interface InviteRepository {
     create: (
         inviteCreationDetails: InviteCreationDetails
     ) => Promise<PersistedInvite>;
+    findInvitesByEmail: (email: string) => Promise<Array<PersistedInvite>>;
 }
 
 export type InviteCreationDetails = {

@@ -57,6 +57,6 @@ export default class InviteService implements InviteServiceInterface {
     }
 
     async getInvites(email: string) {
-        return await this.inviteRepository.getInvitesByEmail(email);
+        return await this.inviteRepository.findInvitesByEmail(email);
     }
 }
