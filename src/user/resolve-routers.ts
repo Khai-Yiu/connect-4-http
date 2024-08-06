@@ -34,6 +34,6 @@ export const resolveRouters = ({
 
     return {
         [RouterTypes.userRouter]: userRouterFactory(userService, keySet),
-        [RouterTypes.inviteRouter]: inviteRouterFactory(inviteService, keySet)
+        [RouterTypes.inviteRouter]: inviteRouterFactory(inviteService)
     };
 };
