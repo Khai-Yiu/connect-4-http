@@ -30,8 +30,11 @@ export default class InviteService implements InviteServiceInterface {
             );
         }
 
-        const inviteeDoesNotExist = !this.userService.getDoesUserExist(invitee);
-        if (inviteeDoesNotExist) {
+        const doesInviteeExist = !(await this.userService.getDoesUserExist(
+            inviteCreationDetails.invitee
+        ));
+
+        if (doesInviteeExist) {
             throw new InvalidInvitationError('Invitee does not exist.');
         }
 
@@ -49,6 +52,6 @@ export default class InviteService implements InviteServiceInterface {
             invitee,
             exp,
             status
-        };
+        } as InviteDetails;
     }
 }

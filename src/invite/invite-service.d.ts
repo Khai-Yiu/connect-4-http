@@ -1,12 +1,12 @@
 export type InviteCreationDetails = {
-    inviter: String;
-    invitee: String;
+    inviter: string;
+    invitee: string;
 };
 
 export type InviteDetails = {
-    uuid: String;
-    inviter: String;
-    invitee: String;
+    uuid: string;
+    inviter: string;
+    invitee: string;
     exp: number;
     status: InviteStatus;
 };

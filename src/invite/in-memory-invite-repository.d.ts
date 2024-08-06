@@ -8,8 +8,8 @@ export interface InviteRepository {
 }
 
 export type InviteCreationDetails = {
-    inviter: String;
-    invitee: String;
+    inviter: string;
+    invitee: string;
     exp: number;
     status: InviteStatus;
 };

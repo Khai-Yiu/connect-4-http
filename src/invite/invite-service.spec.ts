@@ -3,7 +3,7 @@ import UserService from '@/user/user-service';
 import InviteService, { InvalidInvitationError } from '@/invite/invite-service';
 import InMemoryInviteRepository from '@/invite/in-memory-invite-repository';
 
-const createUserServiceWithInviterAndInvitee = () => {
+const createUserServiceWithInviterAndInvitee = async () => {
     const repository = new InMemoryUserRepositoryFactory();
     const userService = new UserService(repository);
     const inviterDetails = {
@@ -18,8 +18,8 @@ const createUserServiceWithInviterAndInvitee = () => {
         email: 'player2@gmail.com',
         password: 'Hello123'
     };
-    userService.create(inviterDetails);
-    userService.create(inviteeDetails);
+    await userService.create(inviterDetails);
+    await userService.create(inviteeDetails);
 
     return userService;
 };
@@ -32,11 +32,11 @@ describe('invite-service', () => {
                 const currentTime = Date.now();
                 jest.setSystemTime(currentTime);
 
-                const userService = createUserServiceWithInviterAndInvitee();
-                const inviteRepository = new InMemoryInviteRepository();
+                const userService =
+                    await createUserServiceWithInviterAndInvitee();
                 const inviteService = new InviteService(
                     userService,
-                    inviteRepository
+                    new InMemoryInviteRepository()
                 );
                 const inviteDetails = await inviteService.create({
                     inviter: 'player1@gmail.com',
@@ -54,21 +54,20 @@ describe('invite-service', () => {
             });
         });
         describe('and the inviter and invitee are the same user', () => {
-            it('throws an InvalidInvitationError', () => {
-                const userService = new UserService({
-                    repository: new InMemoryUserRepositoryFactory()
-                });
+            it('throws an InvalidInvitationError', async () => {
+                const userService = new UserService(
+                    new InMemoryUserRepositoryFactory()
+                );
                 const inviterDetails = {
                     firstName: 'Player',
                     lastName: 'One',
                     email: 'player1@gmail.com',
                     password: 'Hello123'
                 };
-                userService.create(inviterDetails);
-                const repository = new InMemoryInviteRepository();
+                await userService.create(inviterDetails);
                 const inviteService = new InviteService(
                     userService,
-                    repository
+                    new InMemoryInviteRepository()
                 );
                 const inviteCreationDetails = {
                     inviter: 'player1@gmail.com',
@@ -86,13 +85,19 @@ describe('invite-service', () => {
         });
         describe('and an invitee who is not an existing user', () => {
             it('throws an InvalidInvitationError', async () => {
-                const userService = new UserService({
-                    repository: new InMemoryUserRepositoryFactory()
-                });
-                const repository = new InMemoryInviteRepository();
+                const userService = new UserService(
+                    new InMemoryUserRepositoryFactory()
+                );
+                const inviterDetails = {
+                    firstName: 'Player',
+                    lastName: 'One',
+                    email: 'player1@gmail.com',
+                    password: 'Hello123'
+                };
+                await userService.create(inviterDetails);
                 const inviteService = new InviteService(
                     userService,
-                    repository
+                    new InMemoryInviteRepository()
                 );
                 const inviteCreationDetails = {
                     inviter: 'player1@gmail.com',
