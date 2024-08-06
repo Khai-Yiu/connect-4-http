@@ -10,6 +10,7 @@ interface InviteServiceInterface {
     create: (
         inviteCreationDetails: InviteCreationDetails
     ) => Promise<InviteDetails>;
+    getInvites: (email: string) => Promise<Array<InviteDetails>>;
 }
 
 export class InvalidInvitationError extends Error {}
@@ -53,5 +54,9 @@ export default class InviteService implements InviteServiceInterface {
             exp,
             status
         } as InviteDetails;
+    }
+
+    async getInvites(email: string) {
+        return await this.inviteRepository.getInvitesByEmail(email);
     }
 }
