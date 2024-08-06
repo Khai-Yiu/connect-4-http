@@ -54,7 +54,7 @@ describe('invite-service', () => {
             });
         });
         describe('and the inviter and invitee are the same user', () => {
-            it('throws an InvalidInvitationError', async () => {
+            it('throws an InvalidInvitationError', () => {
                 const userService = new UserService({
                     repository: new InMemoryUserRepositoryFactory()
                 });
@@ -73,6 +73,27 @@ describe('invite-service', () => {
                     new InvalidInvitationError(
                         'Users can not send invites to themselves.'
                     )
+                );
+            });
+        });
+        describe('and an invitee who is not an existing user', () => {
+            it('throws an InvalidInvitationError', async () => {
+                const userService = new UserService({
+                    repository: new InMemoryUserRepositoryFactory()
+                });
+                const repository = new InMemoryInviteRepository();
+                const inviteService = new InviteService(
+                    userService,
+                    repository
+                );
+                const inviteCreationDetails = {
+                    inviter: 'player1@gmail.com',
+                    invitee: 'player2@gmail.com'
+                };
+                expect(
+                    inviteService.create(inviteCreationDetails)
+                ).rejects.toThrow(
+                    new InvalidInvitationError('Invitee does not exist.')
                 );
             });
         });
