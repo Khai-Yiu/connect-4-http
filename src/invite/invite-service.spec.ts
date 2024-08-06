@@ -53,5 +53,22 @@ describe('invite-service', () => {
                 jest.useRealTimers();
             });
         });
+        describe('and the inviter and invitee are the same user', () => {
+            it('throws an InvalidInvitationError', () => {
+                const repository = new InMemoryInviteRepository();
+                const userService = createUserServiceWithInviterAndInvitee();
+                const inviteService = new InviteService(
+                    userService,
+                    repository
+                );
+                const inviteCreationDetails = {
+                    inviter: 'player1@gmail.com',
+                    invitee: 'player2@gmail.com'
+                };
+                expect(
+                    inviteService.create(inviteCreationDetails)
+                ).rejects.toThrow('Users can not send invites to themselves.');
+            });
+        });
     });
 });
