@@ -8,7 +8,7 @@ const createInboxRequestHandler =
         const email = res.locals.claims.email;
         const invites = await inviteService.getInvites(email);
 
-        res.send({ invites });
+        res.status(201).send({ invites });
         next();
     };
 

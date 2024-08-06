@@ -116,10 +116,6 @@ describe('invite-service', () => {
             describe('and an invitee who is an existing user', () => {
                 describe('and the inviter invites the invitee', () => {
                     it('returns all invites', async () => {
-                        jest.useFakeTimers({ doNotFake: ['setImmediate'] });
-                        const currentTime = Date.now();
-                        jest.setSystemTime(currentTime);
-
                         const userService =
                             await createUserServiceWithInviterAndInvitee();
                         const inviteService = new InviteService(
@@ -137,7 +133,6 @@ describe('invite-service', () => {
                                 ...inviteDetails
                             }
                         ]);
-                        jest.useRealTimers();
                     });
                 });
             });
