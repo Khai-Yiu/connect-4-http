@@ -169,4 +169,21 @@ describe('user-service', () => {
             });
         });
     });
+    describe('check if user exists', () => {
+        describe('given the email of an existing user', () => {
+            it('returns true', async () => {
+                const userRepository = new InMemoryUserRepositoryFactory();
+                const userService = new UserService(userRepository);
+                await userService.create({
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    email: 'john.doe@gmail.com',
+                    password: 'Hello123'
+                });
+                expect(
+                    await userService.getDoesUserExist('john.doe@gmail.com')
+                ).toBe(true);
+            });
+        });
+    });
 });

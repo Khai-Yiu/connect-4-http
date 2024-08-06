@@ -58,6 +58,13 @@ describe('invite-service', () => {
                 const userService = new UserService({
                     repository: new InMemoryUserRepositoryFactory()
                 });
+                const inviterDetails = {
+                    firstName: 'Player',
+                    lastName: 'One',
+                    email: 'player1@gmail.com',
+                    password: 'Hello123'
+                };
+                userService.create(inviterDetails);
                 const repository = new InMemoryInviteRepository();
                 const inviteService = new InviteService(
                     userService,
@@ -67,6 +74,7 @@ describe('invite-service', () => {
                     inviter: 'player1@gmail.com',
                     invitee: 'player1@gmail.com'
                 };
+
                 expect(
                     inviteService.create(inviteCreationDetails)
                 ).rejects.toThrow(

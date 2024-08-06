@@ -30,6 +30,11 @@ export default class InviteService implements InviteServiceInterface {
             );
         }
 
+        const inviteeDoesNotExist = !this.userService.getDoesUserExist(invitee);
+        if (inviteeDoesNotExist) {
+            throw new InvalidInvitationError('Invitee does not exist.');
+        }
+
         const lengthOfDayInMilliseconds = 60 * 60 * 24 * 1000;
         const { uuid, inviter, invitee, exp, status } =
             await this.inviteRepository.create({
