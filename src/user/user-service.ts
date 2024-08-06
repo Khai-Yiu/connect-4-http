@@ -1,6 +1,6 @@
 import { isEmpty } from 'ramda';
 import { PersistedUser } from '@/user/in-memory-user-repository';
-import { UserRepository } from '@/user/user-repository';
+import { UserRepository } from '@/user/in-memory-user-repository.d';
 import {
     CreateUserDetails,
     UserCredentials,
@@ -19,6 +19,7 @@ export interface UserServiceInterface {
         userCredentials: UserCredentials
     ) => Promise<AuthenticationDetails>;
     getUserDetails: (email: String) => Promise<UserDetails>;
+    getDoesUserExist: (email: String) => Promise<Boolean>;
 }
 
 export default class UserService implements UserServiceInterface {
@@ -74,5 +75,11 @@ export default class UserService implements UserServiceInterface {
             lastName: persistedUser.lastName,
             email: persistedUser.email
         };
+    }
+
+    async getDoesUserExist(email: string) {
+        const persistedUsers = await this.repository.findByEmail(email);
+
+        return persistedUsers.length !== 0;
     }
 }
