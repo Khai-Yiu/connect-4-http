@@ -183,5 +183,34 @@ describe('invite-integration', () => {
                 ]);
             });
         });
+        describe('and an inviter sends an invite to the invitee', () => {
+            it('responds with http status code 403', async () => {
+                const inviterDetails = {
+                    firstName: 'Player',
+                    lastName: 'One',
+                    email: 'player1@gmail.com',
+                    password: 'Hello123'
+                };
+                const inviterCredentials = {
+                    username: 'player1@gmail.com',
+                    password: 'Hello123'
+                };
+                await request(app).post('/user/signup').send(inviterDetails);
+                const loginResponse = await request(app)
+                    .post('/user/login')
+                    .send(inviterCredentials);
+                const response = await request(app)
+                    .post('/invite')
+                    .set('Authorization', loginResponse.header.authorization)
+                    .send({
+                        inviter: 'player1@gmail.com',
+                        invitee: 'player2@gmail.com'
+                    });
+                expect(response.statusCode).toBe(403);
+                expect(response.body.errors).toEqual([
+                    'Invitations can not be sent to unregistered users.'
+                ]);
+            });
+        });
     });
 });
