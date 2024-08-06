@@ -86,7 +86,6 @@ describe('invite-integration', () => {
                                 loginResponse.headers.authorization
                             )
                             .send({
-                                email: 'player3@gmail.com',
                                 inviter: 'player3@gmail.com',
                                 invitee: 'player2@gmail.com'
                             });
@@ -152,6 +151,36 @@ describe('invite-integration', () => {
                         jest.useRealTimers();
                     });
                 });
+            });
+        });
+        describe('when the inviter sends an invitation to themselves', () => {
+            it('returns with http status code 403', async () => {
+                const inviterDetails = {
+                    firstName: 'Player',
+                    lastName: 'One',
+                    email: 'player1@gmail.com',
+                    password: 'Hello123'
+                };
+                const inviterCredentials = {
+                    username: 'player1@gmail.com',
+                    password: 'Hello123'
+                };
+                await request(app).post('/user/signup').send(inviterDetails);
+                const loginResponse = await request(app)
+                    .post('/user/login')
+                    .send(inviterCredentials);
+                const response = await request(app)
+                    .post('/invite')
+                    .set('Authorization', loginResponse.headers.authorization)
+                    .send({
+                        inviter: 'player1@gmail.com',
+                        invitee: 'player1@gmail.com'
+                    });
+
+                expect(response.statusCode).toBe(403);
+                expect(response.body.errors).toEqual([
+                    'You can not send an invite to yourself.'
+                ]);
             });
         });
     });
