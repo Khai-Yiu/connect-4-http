@@ -1,12 +1,15 @@
-import request, { Response } from 'supertest';
+import { Response } from 'supertest';
 import appFactory from '@/app';
 import { generateKeyPair, jwtDecrypt } from 'jose';
 import { last, path, pipe, split } from 'ramda';
 import { App } from 'supertest/types';
+import TestFixture from './test-fixture';
+import { KeySet } from './global';
 
 describe('user-integration', () => {
     let app: App;
-    let jwtKeyPair;
+    let jwtKeyPair: KeySet;
+    let testFixture: TestFixture;
 
     beforeAll(async () => {
         jwtKeyPair = await generateKeyPair('RS256');
@@ -19,17 +22,19 @@ describe('user-integration', () => {
                 keySet: jwtKeyPair
             }
         });
+        testFixture = new TestFixture(app);
     });
 
     describe('signup', () => {
         describe('given the user does not exist', () => {
             it('creates a user', async () => {
-                const response = await request(app).post('/user/signup').send({
-                    firstName: 'John',
-                    lastName: 'Doe',
-                    email: 'john.doe@gmail.com',
-                    password: 'Hello123'
-                });
+                await testFixture.createUser(
+                    'John',
+                    'Doe',
+                    'john.doe@gmail.com',
+                    'Hello123'
+                );
+                const response = testFixture.getResponse();
                 expect(response.statusCode).toBe(201);
                 expect(response.body).toEqual(
                     expect.objectContaining({
@@ -44,18 +49,19 @@ describe('user-integration', () => {
         });
         describe('given a user already exists with a given email', () => {
             it('forbids creation of another user with that email', async () => {
-                await request(app).post('/user/signup').send({
-                    firstName: 'Kenny',
-                    lastName: 'Pho',
-                    email: 'pho.devourer@gmail.com',
-                    password: 'Hello213'
-                });
-                const response = await request(app).post('/user/signup').send({
-                    firstName: 'Lenny',
-                    lastName: 'Pho',
-                    email: 'pho.devourer@gmail.com',
-                    password: 'Hello123'
-                });
+                await testFixture.createUser(
+                    'Kenny',
+                    'Pho',
+                    'pho.devourer@gmail.com',
+                    'Hello123'
+                );
+                await testFixture.createUser(
+                    'Lenny',
+                    'Pho',
+                    'pho.devourer@gmail.com',
+                    'Hello123'
+                );
+                const response = testFixture.getResponse();
                 expect(response.statusCode).toBe(403);
                 expect(response.body.errors).toEqual([
                     'A user with that email already exists'
@@ -65,11 +71,13 @@ describe('user-integration', () => {
         });
         describe('given invalid user details', () => {
             it('forbids creation of user', async () => {
-                const response = await request(app).post('/user/signup').send({
-                    firstName: 'Dempsey',
-                    email: 'dempsey.lamnington@gmail.com'
-                });
-
+                await testFixture.createUser(
+                    'Dempsey',
+                    undefined,
+                    'dempsey.lamington@gmail.com',
+                    undefined
+                );
+                const response = testFixture.getResponse();
                 expect(response.statusCode).toBe(403);
                 expect(response.body.errors).toEqual([
                     {
@@ -95,20 +103,17 @@ describe('user-integration', () => {
                     const dateInMilliseconds = Date.now();
                     jest.setSystemTime(dateInMilliseconds);
 
-                    const userDetails = {
-                        firstName: 'Dung',
-                        lastName: 'Eater',
-                        email: 'dung.eater@gmail.com',
-                        password: 'IAmTheDungEater'
-                    };
-                    await request(app).post('/user/signup').send(userDetails);
-                    const userCredentials = {
-                        username: 'dung.eater@gmail.com',
-                        password: 'IAmTheDungEater'
-                    };
-                    const loginResponse = await request(app)
-                        .post('/user/login')
-                        .send(userCredentials);
+                    await testFixture.createUser(
+                        'Dung',
+                        'Eater',
+                        'dung.eater@gmail.com',
+                        'IAmTheDungEater'
+                    );
+                    await testFixture.login(
+                        'dung.eater@gmail.com',
+                        'IAmTheDungEater'
+                    );
+                    const loginResponse = testFixture.getResponse();
                     const jwt = pipe<[Response], string, Array<string>, string>(
                         path(['headers', 'authorization']),
                         split(' '),
@@ -139,20 +144,17 @@ describe('user-integration', () => {
             });
             describe('and they provide incorrect credentials', () => {
                 it('responds with http status code 403', async () => {
-                    const userDetails = {
-                        firstName: 'Dung',
-                        lastName: 'Eater',
-                        email: 'dung.eater@gmail.com',
-                        password: 'Hello123'
-                    };
-                    await request(app).post('/user/signup').send(userDetails);
-                    const userCredentials = {
-                        username: 'dung.eater@gmail.com',
-                        password: 'Hello121'
-                    };
-                    const response = await request(app)
-                        .post('/user/login')
-                        .send(userCredentials);
+                    await testFixture.createUser(
+                        'Dung',
+                        'Eater',
+                        'dung.eater@gmail.com',
+                        'IAmTheDungEater'
+                    );
+                    await testFixture.login(
+                        'dung.eater@gmail.com',
+                        'IAmTheDungEater1'
+                    );
+                    const response = testFixture.getResponse();
                     expect(response.statusCode).toBe(403);
                     expect(response.body.errors).toEqual([
                         'Login attempt failed.'
@@ -163,13 +165,8 @@ describe('user-integration', () => {
         });
         describe('given credentials for a user that does not exist', () => {
             it('responds with a http status code 403', async () => {
-                const userCredentials = {
-                    username: 'dung.eater@gmail.com',
-                    password: 'Hello123'
-                };
-                const response = await request(app)
-                    .post('/user/login')
-                    .send(userCredentials);
+                await testFixture.login('dung.eater@gmail.com', 'Hello123');
+                const response = testFixture.getResponse();
                 expect(response.statusCode).toBe(403);
                 expect(response.body.errors).toEqual(['Login attempt failed.']);
                 expect(response.headers['content-type']).toMatch(/json/);
@@ -180,7 +177,14 @@ describe('user-integration', () => {
         describe('given the user does not provide an authorization token', () => {
             describe('when they attempt to view their user details', () => {
                 it('responds with http status code 401', async () => {
-                    const response = await request(app).get('/user').send();
+                    await testFixture.createUser(
+                        'Dung',
+                        'Eater',
+                        'dung.eater@gmail.com',
+                        'IAmTheDungEater'
+                    );
+                    await testFixture.getUserDetails('dung.eater@gmail.com');
+                    const response = testFixture.getResponse();
                     expect(response.statusCode).toBe(401);
                     expect(response.body.errors).toEqual([
                         'You must be logged in to view your user details.'
@@ -191,10 +195,16 @@ describe('user-integration', () => {
         describe('given a user provides an authorization token', () => {
             describe('and their token is invalid', () => {
                 it('responds with http status code 401', async () => {
-                    const response = await request(app)
-                        .get('/user')
-                        .set('Authorization', 'token')
-                        .send();
+                    await testFixture.createUser(
+                        'Dung',
+                        'Eater',
+                        'dung.eater@gmail.com',
+                        'IAmTheDungEater'
+                    );
+                    await testFixture.getUserDetails('dung.eater@gmail.com', {
+                        customAuthField: 'InvalidToken'
+                    });
+                    const response = testFixture.getResponse();
                     expect(response.statusCode).toBe(401);
                     expect(response.body.errors).toEqual([
                         'You must be logged in to view your user details.'
@@ -207,29 +217,24 @@ describe('user-integration', () => {
                         doNotFake: ['setImmediate']
                     });
 
-                    const userDetails = {
-                        firstName: 'Dung',
-                        lastName: 'Eater',
-                        email: 'dung.eater@gmail.com',
-                        password: 'IAmTheDungEater'
-                    };
-                    await request(app).post('/user/signup').send(userDetails);
-                    const userCredentials = {
-                        username: 'dung.eater@gmail.com',
-                        password: 'IAmTheDungEater'
-                    };
-                    const loginResponse = await request(app)
-                        .post('/user/login')
-                        .send(userCredentials);
-                    const authorizationHeaderField =
-                        loginResponse.header.authorization;
+                    await testFixture.createUser(
+                        'Dung',
+                        'Eater',
+                        'dung.eater@gmail.com',
+                        'IAmTheDungEater'
+                    );
+                    await testFixture.login(
+                        'dung.eater@gmail.com',
+                        'IAmTheDungEater'
+                    );
+                    const loginResponse = testFixture.getResponse();
                     const dateOfFollowingDayInMilliseconds =
                         Date.now() + 60 * 60 * 24 * 1000;
                     jest.setSystemTime(dateOfFollowingDayInMilliseconds);
-                    const response = await request(app)
-                        .get('/user')
-                        .set('Authorization', authorizationHeaderField)
-                        .send({ email: 'dung.eater@gmail.com' });
+                    await testFixture.getUserDetails('dung.eater@gmail.com', {
+                        customAuthField: loginResponse.headers.authorization
+                    });
+                    const response = testFixture.getResponse();
 
                     expect(response.statusCode).toBe(401);
                     expect(response.body.errors).toEqual([
@@ -240,28 +245,19 @@ describe('user-integration', () => {
             });
             describe('and their token is valid', () => {
                 it('responds with the user details', async () => {
-                    const userDetails = {
-                        firstName: 'Dung',
-                        lastName: 'Eater',
-                        email: 'dung.eater@gmail.com',
-                        password: 'IAmTheDungEater'
-                    };
-                    await request(app).post('/user/signup').send(userDetails);
-                    const userCredentials = {
-                        username: 'dung.eater@gmail.com',
-                        password: 'IAmTheDungEater'
-                    };
-                    const loginResponse = await request(app)
-                        .post('/user/login')
-                        .send(userCredentials);
-                    const authorizationHeaderField =
-                        loginResponse.header.authorization;
-
-                    const response = await request(app)
-                        .get('/user')
-                        .set('Authorization', authorizationHeaderField)
-                        .send({ email: 'dung.eater@gmail.com' });
-
+                    await testFixture.createUser(
+                        'Dung',
+                        'Eater',
+                        'dung.eater@gmail.com',
+                        'IAmTheDungEater'
+                    );
+                    await testFixture.login(
+                        'dung.eater@gmail.com',
+                        'IAmTheDungEater'
+                    );
+                    const loginResponse = testFixture.getResponse();
+                    await testFixture.getUserDetails('dung.eater@gmail.com');
+                    const response = testFixture.getResponse();
                     const userAccountDetails = {
                         firstName: 'Dung',
                         lastName: 'Eater',

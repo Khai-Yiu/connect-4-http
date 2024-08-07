@@ -1,0 +1,322 @@
+import TestFixture from '@/test-fixture';
+import { generateKeyPair } from 'jose';
+import appFactory from '@/app';
+import { App } from 'supertest/types';
+import { KeySet } from './global';
+
+describe('test-fixture', () => {
+    let app: App;
+    let jwtKeyPair: KeySet;
+
+    beforeAll(async () => {
+        jwtKeyPair = await generateKeyPair('RS256');
+    });
+
+    beforeEach(() => {
+        app = appFactory({
+            routerParameters: {
+                stage: 'test',
+                keySet: jwtKeyPair
+            }
+        });
+    });
+    describe('given no parameters', () => {
+        it('returns a test fixture', () => {
+            const testFixture = new TestFixture();
+            expect(testFixture).toBeInstanceOf(TestFixture);
+        });
+    });
+    describe('given an App parameter is provided', () => {
+        it('returns a test fixture', async () => {
+            const app = appFactory({
+                routerParameters: {
+                    stage: 'test',
+                    keySet: await generateKeyPair('RS256')
+                }
+            });
+            const testFixture = new TestFixture(app);
+            expect(testFixture).toBeInstanceOf(TestFixture);
+        });
+    });
+    describe('retrieving a response', () => {
+        describe('given no request', () => {
+            it('returns no response', () => {
+                const testFixture = new TestFixture(app);
+                const response = testFixture.getResponse();
+                expect(response).toBeUndefined();
+            });
+        });
+        describe('given a single request', () => {
+            it('returns a response', async () => {
+                const testFixture = new TestFixture(app);
+                await testFixture.createUser(
+                    'Player',
+                    'One',
+                    'player1@gmail.com',
+                    'Hello123'
+                );
+                const response = testFixture.getResponse();
+                expect(response.statusCode).toBe(201);
+            });
+        });
+        describe('given multiple requests', () => {
+            it('returns a response associated for each request', async () => {
+                const testFixture = new TestFixture(app);
+                await testFixture.createUser(
+                    'Player',
+                    'One',
+                    'player1@gmail.com',
+                    'Hello123'
+                );
+                const createResponse = testFixture.getResponse();
+                expect(createResponse.statusCode).toBe(201);
+
+                await testFixture.login('player1@gmail.com', 'Hello123');
+                const loginResponse = testFixture.getResponse();
+                expect(loginResponse.statusCode).toBe(200);
+            });
+        });
+    });
+    describe('given a request to signup a user', () => {
+        describe('and the required user signup details', () => {
+            it('returns a response', async () => {
+                const testFixture = new TestFixture(app);
+                await testFixture.createUser(
+                    'Player',
+                    'One',
+                    'player1@gmail.com',
+                    'Hello123'
+                );
+                const response = testFixture.getResponse();
+                expect(response.statusCode).toBe(201);
+            });
+        });
+    });
+    describe('given a request to login', () => {
+        describe('and the required login details', () => {
+            it('returns a response', async () => {
+                const testFixture = new TestFixture(app);
+                await testFixture.createUser(
+                    'Player',
+                    'One',
+                    'player1@gmail.com',
+                    'Hello123'
+                );
+                await testFixture.login('player1@gmail.com', 'Hello123');
+                const response = testFixture.getResponse();
+                expect(response.statusCode).toBe(200);
+            });
+        });
+    });
+    describe('given a request to get user details', () => {
+        describe('and the required email of the user', () => {
+            it('returns a response', async () => {
+                const testFixture = new TestFixture(app);
+                await testFixture.createUser(
+                    'Player',
+                    'One',
+                    'player1@gmail.com',
+                    'Hello123'
+                );
+                await testFixture.login('player1@gmail.com', 'Hello123');
+                await testFixture.getUserDetails('player1@gmail.com');
+                const response = testFixture.getResponse();
+                expect(response.statusCode).toBe(200);
+            });
+            describe('and an optional token', () => {
+                it('returns a response', async () => {
+                    const testFixture = new TestFixture(app);
+                    await testFixture.createUser(
+                        'Player',
+                        'One',
+                        'player1@gmail.com',
+                        'Hello123'
+                    );
+                    await testFixture.login('player1@gmail.com', 'Hello123');
+                    await testFixture.getUserDetails('player1@gmail.com', {
+                        customAuthField: 'Invalid'
+                    });
+                    const response = testFixture.getResponse();
+                    expect(response.statusCode).toBe(401);
+                    expect(response.body.errors).toEqual([
+                        'You must be logged in to view your user details.'
+                    ]);
+                });
+            });
+            describe('and an optional authenticated user', () => {
+                it('returns a response', async () => {
+                    const testFixture = new TestFixture(app);
+                    await testFixture.createUser(
+                        'Player',
+                        'One',
+                        'player1@gmail.com',
+                        'Hello123'
+                    );
+                    await testFixture.login('player1@gmail.com', 'Hello123');
+                    await testFixture.getUserDetails('player1@gmail.com', {
+                        authenticatedUser: 'player2@gmail.com'
+                    });
+                    const response = testFixture.getResponse();
+                    expect(response.statusCode).toBe(401);
+                });
+            });
+        });
+    });
+    describe('given a request to create an invite', () => {
+        describe('and the required inviter and invitee is provided', () => {
+            it('returns a response', async () => {
+                const testFixture = new TestFixture(app);
+                await testFixture.createUser(
+                    'Player',
+                    'One',
+                    'player1@gmail.com',
+                    'Hello123'
+                );
+                await testFixture.createUser(
+                    'Player',
+                    'Two',
+                    'player2@gmail.com',
+                    'Hello123'
+                );
+                await testFixture.login('player1@gmail.com', 'Hello123');
+                await testFixture.createInvite(
+                    'player1@gmail.com',
+                    'player2@gmail.com'
+                );
+                const response = testFixture.getResponse();
+                expect(response.statusCode).toBe(201);
+            });
+            describe('and an optional token', () => {
+                it('returns a response', async () => {
+                    const testFixture = new TestFixture(app);
+                    await testFixture.createUser(
+                        'Player',
+                        'One',
+                        'player1@gmail.com',
+                        'Hello123'
+                    );
+                    await testFixture.createUser(
+                        'Player',
+                        'Two',
+                        'player2@gmail.com',
+                        'Hello123'
+                    );
+                    await testFixture.login('player1@gmail.com', 'Hello123');
+                    await testFixture.createInvite(
+                        'player1@gmail.com',
+                        'player2@gmail.com',
+                        { customAuthField: 'InvalidToken' }
+                    );
+                    const response = testFixture.getResponse();
+                    expect(response.statusCode).toBe(401);
+                });
+            });
+            describe('and an optional authenticated user', () => {
+                it('returns a response', async () => {
+                    const testFixture = new TestFixture(app);
+                    await testFixture.createUser(
+                        'Player',
+                        'One',
+                        'player1@gmail.com',
+                        'Hello123'
+                    );
+                    await testFixture.createUser(
+                        'Player',
+                        'Two',
+                        'player2@gmail.com',
+                        'Hello123'
+                    );
+                    await testFixture.login('player1@gmail.com', 'Hello123');
+                    await testFixture.createInvite(
+                        'player1@gmail.com',
+                        'player2@gmail.com',
+                        { authenticatedUser: 'player3@gmail.com' }
+                    );
+                    const response = testFixture.getResponse();
+                    expect(response.statusCode).toBe(401);
+                });
+            });
+        });
+    });
+    describe('given a request to retrieve all invites for a user', () => {
+        describe('and the required email is provided', () => {
+            it('returns a response', async () => {
+                const testFixture = new TestFixture(app);
+                await testFixture.createUser(
+                    'Player',
+                    'One',
+                    'player1@gmail.com',
+                    'Hello123'
+                );
+                await testFixture.createUser(
+                    'Player',
+                    'Two',
+                    'player2@gmail.com',
+                    'Hello123'
+                );
+                await testFixture.login('player1@gmail.com', 'Hello123');
+                await testFixture.createInvite(
+                    'player1@gmail.com',
+                    'player2@gmail.com'
+                );
+                await testFixture.getInvites('player1@gmail.com');
+                const response = testFixture.getResponse();
+                expect(response.statusCode).toBe(201);
+            });
+            describe('and an optional token', () => {
+                it('returns a response', async () => {
+                    const testFixture = new TestFixture(app);
+                    await testFixture.createUser(
+                        'Player',
+                        'One',
+                        'player1@gmail.com',
+                        'Hello123'
+                    );
+                    await testFixture.createUser(
+                        'Player',
+                        'Two',
+                        'player2@gmail.com',
+                        'Hello123'
+                    );
+                    await testFixture.login('player1@gmail.com', 'Hello123');
+                    await testFixture.createInvite(
+                        'player1@gmail.com',
+                        'player2@gmail.com'
+                    );
+                    await testFixture.getInvites('player1@gmail.com', {
+                        customAuthField: 'InvalidToken'
+                    });
+                    const response = testFixture.getResponse();
+                    expect(response.statusCode).toBe(401);
+                });
+            });
+            describe('and an optional authenticated user', () => {
+                it('returns a response', async () => {
+                    const testFixture = new TestFixture(app);
+                    await testFixture.createUser(
+                        'Player',
+                        'One',
+                        'player1@gmail.com',
+                        'Hello123'
+                    );
+                    await testFixture.createUser(
+                        'Player',
+                        'Two',
+                        'player2@gmail.com',
+                        'Hello123'
+                    );
+                    await testFixture.login('player1@gmail.com', 'Hello123');
+                    await testFixture.createInvite(
+                        'player1@gmail.com',
+                        'player2@gmail.com'
+                    );
+                    await testFixture.getInvites('player1@gmail.com', {
+                        authenticatedUser: 'player2@gmail.com'
+                    });
+                    const response = testFixture.getResponse();
+                    expect(response.statusCode).toBe(401);
+                });
+            });
+        });
+    });
+});

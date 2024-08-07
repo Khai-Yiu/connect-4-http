@@ -1,34 +1,35 @@
 import appFactory from '@/app';
+import { KeySet } from '@/global';
+import TestFixture from '@/test-fixture';
 import { generateKeyPair } from 'jose';
-import request from 'supertest';
 import { App } from 'supertest/types';
 
 describe('invite-integration', () => {
     let app: App;
-    let jwtKeyPair;
+    let jwtKeyPair: KeySet;
+    let testFixture: TestFixture;
 
     beforeAll(async () => {
         jwtKeyPair = await generateKeyPair('RS256');
     });
-    beforeEach(async () => {
+    beforeEach(() => {
         app = appFactory({
             routerParameters: {
                 stage: 'test',
                 keySet: jwtKeyPair
             }
         });
+        testFixture = new TestFixture(app);
     });
     describe('creating an invite', () => {
         describe('given the inviter is not logged in', () => {
             describe('when the inviter sends an invitation', () => {
                 it('returns http status code 401', async () => {
-                    const inviteDetails = {
-                        invitee: 'player1@gmail.com',
-                        inviter: 'player2@gmail.com'
-                    };
-                    const response = await request(app)
-                        .post('/invite')
-                        .send(inviteDetails);
+                    await testFixture.createInvite(
+                        'player1@gmail.com',
+                        'player2@gmail.com'
+                    );
+                    const response = testFixture.getResponse();
                     expect(response.statusCode).toBe(401);
                     expect(response.body.errors).toEqual([
                         'You must be logged in to send an invite.'
@@ -45,51 +46,36 @@ describe('invite-integration', () => {
                             const currentTime = Date.now();
                             jest.setSystemTime(currentTime);
 
-                            const inviterDetails = {
-                                firstName: 'Player',
-                                lastName: 'One',
-                                email: 'player1@gmail.com',
-                                password: 'Hello123'
-                            };
-                            const inviteeDetails = {
-                                firstName: 'Player',
-                                lastName: 'Two',
-                                email: 'player2@gmail.com',
-                                password: 'Hello123'
-                            };
-                            const unauthorizedInviterDetails = {
-                                firstName: 'Player',
-                                lastName: 'Three',
-                                email: 'player3@gmail.com',
-                                password: 'Hello123'
-                            };
-                            const inviterCredentials = {
-                                username: 'player1@gmail.com',
-                                password: 'Hello123'
-                            };
-                            await request(app)
-                                .post('/user/signup')
-                                .send(inviterDetails);
-                            await request(app)
-                                .post('/user/signup')
-                                .send(inviteeDetails);
-                            await request(app)
-                                .post('/user/signup')
-                                .send(unauthorizedInviterDetails);
-                            const loginResponse = await request(app)
-                                .post('/user/login')
-                                .send(inviterCredentials);
-                            const response = await request(app)
-                                .post('/invite')
-                                .set(
-                                    'Authorization',
-                                    loginResponse.headers.authorization
-                                )
-                                .send({
-                                    inviter: 'player3@gmail.com',
-                                    invitee: 'player2@gmail.com'
-                                });
+                            await testFixture.createUser(
+                                'Player',
+                                'One',
+                                'player1@gmail.com',
+                                'Hello123'
+                            );
+                            await testFixture.createUser(
+                                'Player',
+                                'Two',
+                                'player2@gmail.com',
+                                'Hello123'
+                            );
+                            await testFixture.createUser(
+                                'Player',
+                                'Three',
+                                'player3@gmail.com',
+                                'Hello123'
+                            );
+                            await testFixture.login(
+                                'player1@gmail.com',
+                                'Hello123'
+                            );
 
+                            await testFixture.createInvite(
+                                'player3@gmail.com',
+                                'player2@gmail.com',
+                                { authenticatedUser: 'player1@gmail.com' }
+                            );
+
+                            const response = testFixture.getResponse();
                             expect(response.statusCode).toBe(401);
                             expect(response.body.errors).toEqual([
                                 'You can not send an invite as another user.'
@@ -103,42 +89,28 @@ describe('invite-integration', () => {
                             const currentTime = Date.now();
                             jest.setSystemTime(currentTime);
 
-                            const inviterDetails = {
-                                firstName: 'Player',
-                                lastName: 'One',
-                                email: 'player1@gmail.com',
-                                password: 'Hello123'
-                            };
-                            const inviteeDetails = {
-                                firstName: 'Player',
-                                lastName: 'Two',
-                                email: 'player2@gmail.com',
-                                password: 'Hello123'
-                            };
-                            const inviterCredentials = {
-                                username: 'player1@gmail.com',
-                                password: 'Hello123'
-                            };
-                            await request(app)
-                                .post('/user/signup')
-                                .send(inviterDetails);
-                            await request(app)
-                                .post('/user/signup')
-                                .send(inviteeDetails);
-                            const loginResponse = await request(app)
-                                .post('/user/login')
-                                .send(inviterCredentials);
-                            const response = await request(app)
-                                .post('/invite')
-                                .set(
-                                    'Authorization',
-                                    loginResponse.headers.authorization
-                                )
-                                .send({
-                                    email: 'player1@gmail.com',
-                                    inviter: 'player1@gmail.com',
-                                    invitee: 'player2@gmail.com'
-                                });
+                            await testFixture.createUser(
+                                'Player',
+                                'One',
+                                'player1@gmail.com',
+                                'Hello123'
+                            );
+                            await testFixture.createUser(
+                                'Player',
+                                'Two',
+                                'player2@gmail.com',
+                                'Hello123'
+                            );
+                            await testFixture.login(
+                                'player1@gmail.com',
+                                'Hello123'
+                            );
+
+                            await testFixture.createInvite(
+                                'player1@gmail.com',
+                                'player2@gmail.com'
+                            );
+                            const response = testFixture.getResponse();
                             const lengthOfDayInMilliseconds =
                                 60 * 60 * 24 * 1000;
                             expect(response.statusCode).toBe(201);
@@ -156,32 +128,19 @@ describe('invite-integration', () => {
             });
             describe('when the inviter sends an invitation to themselves', () => {
                 it('returns with http status code 403', async () => {
-                    const inviterDetails = {
-                        firstName: 'Player',
-                        lastName: 'One',
-                        email: 'player1@gmail.com',
-                        password: 'Hello123'
-                    };
-                    const inviterCredentials = {
-                        username: 'player1@gmail.com',
-                        password: 'Hello123'
-                    };
-                    await request(app)
-                        .post('/user/signup')
-                        .send(inviterDetails);
-                    const loginResponse = await request(app)
-                        .post('/user/login')
-                        .send(inviterCredentials);
-                    const response = await request(app)
-                        .post('/invite')
-                        .set(
-                            'Authorization',
-                            loginResponse.headers.authorization
-                        )
-                        .send({
-                            inviter: 'player1@gmail.com',
-                            invitee: 'player1@gmail.com'
-                        });
+                    await testFixture.createUser(
+                        'Player',
+                        'One',
+                        'player1@gmail.com',
+                        'Hello123'
+                    );
+
+                    await testFixture.login('player1@gmail.com', 'Hello123');
+                    await testFixture.createInvite(
+                        'player1@gmail.com',
+                        'player1@gmail.com'
+                    );
+                    const response = testFixture.getResponse();
 
                     expect(response.statusCode).toBe(403);
                     expect(response.body.errors).toEqual([
@@ -192,32 +151,21 @@ describe('invite-integration', () => {
             describe('and an inviter sends an invite to the invitee', () => {
                 describe('and the invitee is not an existing user', () => {
                     it('responds with http status code 403', async () => {
-                        const inviterDetails = {
-                            firstName: 'Player',
-                            lastName: 'One',
-                            email: 'player1@gmail.com',
-                            password: 'Hello123'
-                        };
-                        const inviterCredentials = {
-                            username: 'player1@gmail.com',
-                            password: 'Hello123'
-                        };
-                        await request(app)
-                            .post('/user/signup')
-                            .send(inviterDetails);
-                        const loginResponse = await request(app)
-                            .post('/user/login')
-                            .send(inviterCredentials);
-                        const response = await request(app)
-                            .post('/invite')
-                            .set(
-                                'Authorization',
-                                loginResponse.header.authorization
-                            )
-                            .send({
-                                inviter: 'player1@gmail.com',
-                                invitee: 'player2@gmail.com'
-                            });
+                        await testFixture.createUser(
+                            'Player',
+                            'One',
+                            'player1@gmail.com',
+                            'Hello123'
+                        );
+                        await testFixture.login(
+                            'player1@gmail.com',
+                            'Hello123'
+                        );
+                        await testFixture.createInvite(
+                            'player1@gmail.com',
+                            'player2@gmail.com'
+                        );
+                        const response = testFixture.getResponse();
                         expect(response.statusCode).toBe(403);
                         expect(response.body.errors).toEqual([
                             'Invitee does not exist.'
@@ -236,57 +184,33 @@ describe('invite-integration', () => {
                         const currentTime = Date.now();
                         jest.setSystemTime(currentTime);
 
-                        const inviterDetails = {
-                            firstName: 'Player',
-                            lastName: 'One',
-                            email: 'player1@gmail.com',
-                            password: 'Hello123'
-                        };
-                        const inviteeDetails = {
-                            firstName: 'Player',
-                            lastName: 'Two',
-                            email: 'player2@gmail.com',
-                            password: 'Hello123'
-                        };
-                        const inviterCredentials = {
-                            username: 'player1@gmail.com',
-                            password: 'Hello123'
-                        };
-                        const inviteeCredentials = {
-                            username: 'player2@gmail.com',
-                            password: 'Hello123'
-                        };
-                        const inviteCreationDetails = {
-                            inviter: 'player1@gmail.com',
-                            invitee: 'player2@gmail.com'
-                        };
+                        await testFixture.createUser(
+                            'Player',
+                            'One',
+                            'player1@gmail.com',
+                            'Hello123'
+                        );
 
-                        await request(app)
-                            .post('/user/signup')
-                            .send(inviterDetails);
-                        await request(app)
-                            .post('/user/signup')
-                            .send(inviteeDetails);
-                        const inviterLoginResponse = await request(app)
-                            .post('/user/login')
-                            .send(inviterCredentials);
-                        const inviteeLoginResponse = await request(app)
-                            .post('/user/login')
-                            .send(inviteeCredentials);
-                        await request(app)
-                            .post('/invite')
-                            .set(
-                                'Authorization',
-                                inviterLoginResponse.headers.authorization
-                            )
-                            .send(inviteCreationDetails);
-                        const response = await request(app)
-                            .post('/invite/inbox')
-                            .set(
-                                'Authorization',
-                                inviteeLoginResponse.headers.authorization
-                            )
-                            .send();
+                        await testFixture.createUser(
+                            'Player',
+                            'Two',
+                            'player2@gmail.com',
+                            'Hello123'
+                        );
+                        await testFixture.login(
+                            'player1@gmail.com',
+                            'Hello123'
+                        );
+                        await testFixture.login(
+                            'player2@gmail.com',
+                            'Hello123'
+                        );
+                        await testFixture.createInvite(
+                            'player1@gmail.com',
+                            'player2@gmail.com'
+                        );
+                        await testFixture.getInvites('player2@gmail.com');
+                        const response = testFixture.getResponse();
 
                         const lengthOfDayInMilliseconds = 60 * 60 * 24 * 1000;
                         expect(response.statusCode).toBe(201);
