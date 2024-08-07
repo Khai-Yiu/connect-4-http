@@ -13,12 +13,14 @@ const createDefaultApp = async () => {
 };
 
 interface Fixture {
-    getResponse: () => Response;
+    getResponses: (index?: number) => Response[] | Response;
     createUser: (
-        firstName: string,
-        lastName: string,
         email: string,
-        password: string
+        password: string,
+        options?: {
+            firstName?: string;
+            lastName?: string;
+        }
     ) => void;
     login: (username: string, password: string) => void;
     getUserDetails: (
@@ -39,90 +41,135 @@ interface Fixture {
 class TestFixture implements Fixture {
     private app: App;
     private authorizationFields: { [key: string]: string };
-    private response: Response;
+    private responses: Response[];
+    private queue: (() => Promise<void>)[] = [];
 
     constructor(app?: App) {
         this.app = app ?? (async () => await createDefaultApp());
         this.authorizationFields = {};
-        this.response = undefined;
+        this.responses = [];
+        this.queue = [];
     }
 
-    getResponse() {
-        return this.response;
+    getResponses(index?: number) {
+        return index !== undefined ? this.responses[index] : this.responses;
     }
 
-    async createUser(
-        firstName: string,
-        lastName: string,
+    async run() {
+        while (this.queue.length > 0) {
+            const task = this.queue.shift();
+            await task();
+        }
+
+        this.queue = [];
+    }
+
+    private addToQueue(task: () => Promise<void>) {
+        this.queue.push(task);
+    }
+
+    createUser(
         email: string,
-        password: string
+        password: string,
+        options?: { firstName?: string; lastName?: string }
     ) {
-        this.response = await request(this.app)
-            .post('/user/signup')
-            .send({ firstName, lastName, email, password });
+        this.addToQueue(async () => {
+            this.responses.push(
+                await request(this.app)
+                    .post('/user/signup')
+                    .send({
+                        ...(options === undefined
+                            ? { firstName: 'firstName', lastName: 'lastName' }
+                            : options),
+                        ...(email === undefined ? {} : { email }),
+                        ...(password === undefined ? {} : { password })
+                    })
+            );
+        });
+        return this;
     }
 
-    async login(username: string, password: string) {
-        this.response = await request(this.app)
-            .post('/user/login')
-            .send({ username, password });
-        this.authorizationFields[username] =
-            this.response.headers.authorization;
+    login(username: string, password: string) {
+        this.addToQueue(async () => {
+            this.responses.push(
+                await request(this.app)
+                    .post('/user/login')
+                    .send({ username, password })
+            );
+            this.authorizationFields[username] =
+                this.responses[this.responses.length - 1].headers.authorization;
+        });
+        return this;
     }
 
-    async getUserDetails(
+    getUserDetails(
         email: string,
         options?: {
             customAuthField?: string;
             authenticatedUser?: string;
         }
     ) {
-        this.response = await request(this.app)
-            .get('/user')
-            .set(
-                'Authorization',
-                options?.customAuthField ??
-                    this.authorizationFields[
-                        options?.authenticatedUser ?? email
-                    ] ??
-                    'UserNotLoggedIn'
-            )
-            .send({ email });
+        this.addToQueue(async () => {
+            this.responses.push(
+                await request(this.app)
+                    .get('/user')
+                    .set(
+                        'Authorization',
+                        options?.customAuthField ??
+                            this.authorizationFields[
+                                options?.authenticatedUser ?? email
+                            ] ??
+                            'UserNotLoggedIn'
+                    )
+                    .send({ email })
+            );
+        });
+        return this;
     }
 
-    async createInvite(
+    createInvite(
         inviter: string,
         invitee: string,
         options?: { customAuthField?: string; authenticatedUser?: string }
     ) {
-        this.response = await request(this.app)
-            .post('/invite')
-            .set(
-                'Authorization',
-                options?.customAuthField ??
-                    this.authorizationFields[
-                        options?.authenticatedUser ?? inviter
-                    ] ??
-                    'UserNotLoggedIn'
-            )
-            .send({ inviter, invitee });
+        this.addToQueue(async () => {
+            this.responses.push(
+                await request(this.app)
+                    .post('/invite')
+                    .set(
+                        'Authorization',
+                        options?.customAuthField ??
+                            this.authorizationFields[
+                                options?.authenticatedUser ?? inviter
+                            ] ??
+                            'UserNotLoggedIn'
+                    )
+                    .send({ inviter, invitee })
+            );
+        });
+        return this;
     }
 
-    async getReceivedInvites(
+    getReceivedInvites(
         email: string,
         options?: { customAuthField?: string; authenticatedUser?: string }
     ) {
-        this.response = await request(this.app)
-            .post('/invite/inbox')
-            .set(
-                'Authorization',
-                options?.customAuthField ??
-                    this.authorizationFields[
-                        options?.authenticatedUser ?? email
-                    ] ??
-                    'UserNotLoggedIn'
-            )
-            .send();
+        this.addToQueue(async () => {
+            this.responses.push(
+                await request(this.app)
+                    .post('/invite/inbox')
+                    .set(
+                        'Authorization',
+                        options?.customAuthField ??
+                            this.authorizationFields[
+                                options?.authenticatedUser ?? email
+                            ] ??
+                            'UserNotLoggedIn'
+                    )
+                    .send()
+            );
+        });
+        return this;
     }
 }
 

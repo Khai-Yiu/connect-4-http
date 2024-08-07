@@ -3,6 +3,7 @@ import { KeySet } from '@/global';
 import TestFixture from '@/test-fixture';
 import { generateKeyPair } from 'jose';
 import { App } from 'supertest/types';
+import { Response } from 'supertest';
 
 describe('invite-integration', () => {
     let app: App;
@@ -25,11 +26,10 @@ describe('invite-integration', () => {
         describe('given the inviter is not logged in', () => {
             describe('when the inviter sends an invitation', () => {
                 it('returns http status code 401', async () => {
-                    await testFixture.createInvite(
-                        'player1@gmail.com',
-                        'player2@gmail.com'
-                    );
-                    const response = testFixture.getResponse();
+                    await testFixture
+                        .createInvite('player1@gmail.com', 'player2@gmail.com')
+                        .run();
+                    const response = testFixture.getResponses(0) as Response;
                     expect(response.statusCode).toBe(401);
                     expect(response.body.errors).toEqual([
                         'You must be logged in to send an invite.'
@@ -46,36 +46,21 @@ describe('invite-integration', () => {
                             const currentTime = Date.now();
                             jest.setSystemTime(currentTime);
 
-                            await testFixture.createUser(
-                                'Player',
-                                'One',
-                                'player1@gmail.com',
-                                'Hello123'
-                            );
-                            await testFixture.createUser(
-                                'Player',
-                                'Two',
-                                'player2@gmail.com',
-                                'Hello123'
-                            );
-                            await testFixture.createUser(
-                                'Player',
-                                'Three',
-                                'player3@gmail.com',
-                                'Hello123'
-                            );
-                            await testFixture.login(
-                                'player1@gmail.com',
-                                'Hello123'
-                            );
+                            await testFixture
+                                .createUser('player1@gmail.com', 'Hello123')
+                                .createUser('player2@gmail.com', 'Hello123')
+                                .createUser('player3@gmail.com', 'Hello123')
+                                .login('player1@gmail.com', 'Hello123')
+                                .createInvite(
+                                    'player3@gmail.com',
+                                    'player2@gmail.com',
+                                    { authenticatedUser: 'player1@gmail.com' }
+                                )
+                                .run();
 
-                            await testFixture.createInvite(
-                                'player3@gmail.com',
-                                'player2@gmail.com',
-                                { authenticatedUser: 'player1@gmail.com' }
-                            );
-
-                            const response = testFixture.getResponse();
+                            const response = testFixture.getResponses(
+                                4
+                            ) as Response;
                             expect(response.statusCode).toBe(401);
                             expect(response.body.errors).toEqual([
                                 'You can not send an invite as another user.'
@@ -89,28 +74,18 @@ describe('invite-integration', () => {
                             const currentTime = Date.now();
                             jest.setSystemTime(currentTime);
 
-                            await testFixture.createUser(
-                                'Player',
-                                'One',
-                                'player1@gmail.com',
-                                'Hello123'
-                            );
-                            await testFixture.createUser(
-                                'Player',
-                                'Two',
-                                'player2@gmail.com',
-                                'Hello123'
-                            );
-                            await testFixture.login(
-                                'player1@gmail.com',
-                                'Hello123'
-                            );
-
-                            await testFixture.createInvite(
-                                'player1@gmail.com',
-                                'player2@gmail.com'
-                            );
-                            const response = testFixture.getResponse();
+                            await testFixture
+                                .createUser('player1@gmail.com', 'Hello123')
+                                .createUser('player2@gmail.com', 'Hello123')
+                                .login('player1@gmail.com', 'Hello123')
+                                .createInvite(
+                                    'player1@gmail.com',
+                                    'player2@gmail.com'
+                                )
+                                .run();
+                            const response = testFixture.getResponses(
+                                3
+                            ) as Response;
                             const lengthOfDayInMilliseconds =
                                 60 * 60 * 24 * 1000;
                             expect(response.statusCode).toBe(201);
@@ -128,19 +103,12 @@ describe('invite-integration', () => {
             });
             describe('when the inviter sends an invitation to themselves', () => {
                 it('returns with http status code 403', async () => {
-                    await testFixture.createUser(
-                        'Player',
-                        'One',
-                        'player1@gmail.com',
-                        'Hello123'
-                    );
-
-                    await testFixture.login('player1@gmail.com', 'Hello123');
-                    await testFixture.createInvite(
-                        'player1@gmail.com',
-                        'player1@gmail.com'
-                    );
-                    const response = testFixture.getResponse();
+                    await testFixture
+                        .createUser('player1@gmail.com', 'Hello123')
+                        .login('player1@gmail.com', 'Hello123')
+                        .createInvite('player1@gmail.com', 'player1@gmail.com')
+                        .run();
+                    const response = testFixture.getResponses(2) as Response;
 
                     expect(response.statusCode).toBe(403);
                     expect(response.body.errors).toEqual([
@@ -151,21 +119,17 @@ describe('invite-integration', () => {
             describe('and an inviter sends an invite to the invitee', () => {
                 describe('and the invitee is not an existing user', () => {
                     it('responds with http status code 403', async () => {
-                        await testFixture.createUser(
-                            'Player',
-                            'One',
-                            'player1@gmail.com',
-                            'Hello123'
-                        );
-                        await testFixture.login(
-                            'player1@gmail.com',
-                            'Hello123'
-                        );
-                        await testFixture.createInvite(
-                            'player1@gmail.com',
-                            'player2@gmail.com'
-                        );
-                        const response = testFixture.getResponse();
+                        await testFixture
+                            .createUser('player1@gmail.com', 'Hello123')
+                            .login('player1@gmail.com', 'Hello123')
+                            .createInvite(
+                                'player1@gmail.com',
+                                'player2@gmail.com'
+                            )
+                            .run();
+                        const response = testFixture.getResponses(
+                            2
+                        ) as Response;
                         expect(response.statusCode).toBe(403);
                         expect(response.body.errors).toEqual([
                             'Invitee does not exist.'
@@ -184,39 +148,25 @@ describe('invite-integration', () => {
                         const currentTime = Date.now();
                         jest.setSystemTime(currentTime);
 
-                        await testFixture.createUser(
-                            'Player',
-                            'One',
-                            'player1@gmail.com',
-                            'Hello123'
-                        );
+                        await testFixture
+                            .createUser('player1@gmail.com', 'Hello123')
+                            .createUser('player2@gmail.com', 'Hello123')
+                            .login('player1@gmail.com', 'Hello123')
+                            .login('player2@gmail.com', 'Hello123')
+                            .createInvite(
+                                'player1@gmail.com',
+                                'player2@gmail.com'
+                            )
+                            .createInvite(
+                                'player2@gmail.com',
+                                'player1@gmail.com'
+                            )
+                            .getReceivedInvites('player2@gmail.com')
+                            .run();
 
-                        await testFixture.createUser(
-                            'Player',
-                            'Two',
-                            'player2@gmail.com',
-                            'Hello123'
-                        );
-                        await testFixture.login(
-                            'player1@gmail.com',
-                            'Hello123'
-                        );
-                        await testFixture.login(
-                            'player2@gmail.com',
-                            'Hello123'
-                        );
-                        await testFixture.createInvite(
-                            'player1@gmail.com',
-                            'player2@gmail.com'
-                        );
-                        await testFixture.createInvite(
-                            'player2@gmail.com',
-                            'player1@gmail.com'
-                        );
-                        await testFixture.getReceivedInvites(
-                            'player2@gmail.com'
-                        );
-                        const response = testFixture.getResponse();
+                        const response = testFixture.getResponses(
+                            6
+                        ) as Response;
 
                         const lengthOfDayInMilliseconds = 60 * 60 * 24 * 1000;
                         expect(response.statusCode).toBe(201);
