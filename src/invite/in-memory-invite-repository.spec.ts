@@ -25,15 +25,24 @@ describe('in-memory-invite-repository', () => {
         describe('and an email is provided', () => {
             it('returns all invites associated with that email', async () => {
                 const repository = new InMemoryInviteRepository();
-                const inviteDetails = {
+                const receivedInviteDetails = {
                     inviter: 'player1@gmail.com',
                     invitee: 'player2@gmail.com',
                     exp: 1000,
                     status: 'PENDING'
                 } as InviteCreationDetails;
-                const createdInvite = await repository.create(inviteDetails);
+                const forwardedInviteDetails = {
+                    inviter: 'player2@gmail.com',
+                    invitee: 'player1@gmail.com',
+                    exp: 1000,
+                    status: 'PENDING'
+                } as InviteCreationDetails;
+                await repository.create(receivedInviteDetails);
+                await repository.create(forwardedInviteDetails);
                 const invites =
-                    await repository.findInvitesByEmail('player2@gmail.com');
+                    await repository.findReceivedInvitesByEmail(
+                        'player2@gmail.com'
+                    );
                 expect(invites).toEqual([
                     {
                         uuid: expect.toBeUuid(),

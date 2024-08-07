@@ -33,9 +33,9 @@ export default class InMemoryInviteRepository implements InviteRepository {
         };
     }
 
-    async findInvitesByEmail(email: string) {
+    async findReceivedInvitesByEmail(email: string) {
         return Array.from(this.invites.values()).filter(
-            ({ inviter, invitee }) => email === inviter || email === invitee
+            ({ inviter, invitee }) => email === invitee
         );
     }
 }

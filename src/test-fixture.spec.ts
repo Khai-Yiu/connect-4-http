@@ -259,7 +259,7 @@ describe('test-fixture', () => {
                     'player1@gmail.com',
                     'player2@gmail.com'
                 );
-                await testFixture.getInvites('player1@gmail.com');
+                await testFixture.getReceivedInvites('player1@gmail.com');
                 const response = testFixture.getResponse();
                 expect(response.statusCode).toBe(201);
             });
@@ -283,7 +283,7 @@ describe('test-fixture', () => {
                         'player1@gmail.com',
                         'player2@gmail.com'
                     );
-                    await testFixture.getInvites('player1@gmail.com', {
+                    await testFixture.getReceivedInvites('player1@gmail.com', {
                         customAuthField: 'InvalidToken'
                     });
                     const response = testFixture.getResponse();
@@ -310,7 +310,7 @@ describe('test-fixture', () => {
                         'player1@gmail.com',
                         'player2@gmail.com'
                     );
-                    await testFixture.getInvites('player1@gmail.com', {
+                    await testFixture.getReceivedInvites('player1@gmail.com', {
                         authenticatedUser: 'player2@gmail.com'
                     });
                     const response = testFixture.getResponse();

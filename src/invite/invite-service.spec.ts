@@ -122,15 +122,22 @@ describe('invite-service', () => {
                             userService,
                             new InMemoryInviteRepository()
                         );
-                        const inviteDetails = await inviteService.create({
-                            inviter: 'player1@gmail.com',
-                            invitee: 'player2@gmail.com'
+                        const receivedInviteDetails =
+                            await inviteService.create({
+                                inviter: 'player1@gmail.com',
+                                invitee: 'player2@gmail.com'
+                            });
+                        await inviteService.create({
+                            inviter: 'player2@gmail.com',
+                            invitee: 'player1@gmail.com'
                         });
                         const invites =
-                            await inviteService.getInvites('player2@gmail.com');
+                            await inviteService.getReceivedInvites(
+                                'player2@gmail.com'
+                            );
                         expect(invites).toEqual([
                             {
-                                ...inviteDetails
+                                ...receivedInviteDetails
                             }
                         ]);
                     });

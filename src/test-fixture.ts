@@ -30,7 +30,7 @@ interface Fixture {
         invitee: string,
         option?: { customAuthField?: string; authenticatedUser?: string }
     ) => void;
-    getInvites: (
+    getReceivedInvites: (
         email: string,
         option?: { customAuthField?: string; authenticatedUser?: string }
     ) => void;
@@ -108,7 +108,7 @@ class TestFixture implements Fixture {
             .send({ inviter, invitee });
     }
 
-    async getInvites(
+    async getReceivedInvites(
         email: string,
         options?: { customAuthField?: string; authenticatedUser?: string }
     ) {

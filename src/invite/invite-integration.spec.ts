@@ -179,7 +179,7 @@ describe('invite-integration', () => {
         describe('given an invite exists', () => {
             describe('and a user logged in as the invites', () => {
                 describe('when the user retrieves their received invites', () => {
-                    it('their invite will be retrieved', async () => {
+                    it('their received invites will be retrieved', async () => {
                         jest.useFakeTimers({ doNotFake: ['setImmediate'] });
                         const currentTime = Date.now();
                         jest.setSystemTime(currentTime);
@@ -209,7 +209,13 @@ describe('invite-integration', () => {
                             'player1@gmail.com',
                             'player2@gmail.com'
                         );
-                        await testFixture.getInvites('player2@gmail.com');
+                        await testFixture.createInvite(
+                            'player2@gmail.com',
+                            'player1@gmail.com'
+                        );
+                        await testFixture.getReceivedInvites(
+                            'player2@gmail.com'
+                        );
                         const response = testFixture.getResponse();
 
                         const lengthOfDayInMilliseconds = 60 * 60 * 24 * 1000;
