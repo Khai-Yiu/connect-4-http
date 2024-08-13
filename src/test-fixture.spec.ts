@@ -6,21 +6,20 @@ import { Response } from 'supertest';
 import { App } from 'supertest/types';
 
 describe('test-fixture', () => {
+    const jwtKeyPair: Promise<KeySet> = generateKeyPair('RS256');
     let app: App;
-    let jwtKeyPair: KeySet;
-
-    beforeAll(async () => {
-        jwtKeyPair = await generateKeyPair('RS256');
-    });
 
     beforeEach(() => {
-        app = appFactory({
-            routerParameters: {
-                stage: 'test',
-                keySet: jwtKeyPair
-            }
+        jwtKeyPair.then((jwtKeyPair) => {
+            app = appFactory({
+                routerParameters: {
+                    stage: 'test',
+                    keySet: jwtKeyPair
+                }
+            });
         });
     });
+
     describe('given no parameters', () => {
         it('returns a test fixture', () => {
             const testFixture = new TestFixture();
@@ -73,6 +72,64 @@ describe('test-fixture', () => {
                 expect(responses.length).toBe(2);
                 expect(createResponse.statusCode).toBe(201);
                 expect(loginResponse.statusCode).toBe(200);
+            });
+            describe('and run is called multiple times', () => {
+                it('should only run each request once', async () => {
+                    const testFixture = new TestFixture(app);
+                    await testFixture
+                        .createUser('player1@gmail.com', 'Hello123')
+                        .login('player1@gmail.com', 'Hello123')
+                        .run();
+
+                    const responsesAfterFirstRun =
+                        testFixture.getResponses() as Response[];
+                    expect(responsesAfterFirstRun.length).toBe(2);
+
+                    await testFixture.run();
+                    const responsesAfterSecondRun =
+                        testFixture.getResponses() as Response[];
+                    expect(responsesAfterSecondRun.length).toBe(2);
+                });
+            });
+        });
+    });
+    describe('chaining', () => {
+        describe('given a TestFixture and a request call', () => {
+            it('should return the same instance of TestFixture', () => {
+                const testFixture = new TestFixture(app);
+                const testFixtureCopy = testFixture.createUser(
+                    'player1@gmail.com',
+                    'Hello123'
+                );
+
+                expect(testFixtureCopy).toBe(testFixture);
+            });
+        });
+        describe('given multiple requests to run', () => {
+            it('calls them consecutively and returns the corresponding number of responses', async () => {
+                const testFixture = new TestFixture(app);
+                testFixture
+                    .createUser('player1@gmail.com', 'Hello123')
+                    .createUser('player2@gmail.com', 'Hello123');
+
+                const responsesBeforeRun =
+                    testFixture.getResponses() as Response[];
+                expect(responsesBeforeRun.length).toBe(0);
+
+                await testFixture.run();
+                const responsesAfterRun =
+                    testFixture.getResponses() as Response[];
+                expect(responsesAfterRun.length).toBe(2);
+            });
+        });
+    });
+    describe('given no requests', () => {
+        describe('and run is called', () => {
+            it('returns no responses', async () => {
+                const testFixture = new TestFixture(app);
+                await testFixture.run();
+                const responses = testFixture.getResponses() as Response[];
+                expect(responses.length).toBe(0);
             });
         });
     });
@@ -190,7 +247,7 @@ describe('test-fixture', () => {
                 const response = testFixture.getResponses(3) as Response;
                 expect(response.statusCode).toBe(201);
             });
-            describe('and an optional token', () => {
+            describe('and an optional invalid token', () => {
                 it('returns a response', async () => {
                     const testFixture = new TestFixture(app);
                     await testFixture

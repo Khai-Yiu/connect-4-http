@@ -73,24 +73,29 @@ class TestFixture implements Fixture {
         password: string,
         options?: { firstName?: string; lastName?: string }
     ) {
-        this.addToQueue(async () => {
+        const callbackFn = async function () {
             this.responses.push(
                 await request(this.app)
                     .post('/user/signup')
                     .send({
                         ...(options === undefined
-                            ? { firstName: 'firstName', lastName: 'lastName' }
+                            ? {
+                                  firstName: 'firstName',
+                                  lastName: 'lastName'
+                              }
                             : options),
                         ...(email === undefined ? {} : { email }),
                         ...(password === undefined ? {} : { password })
                     })
             );
-        });
+        };
+
+        this.addToQueue(callbackFn.bind(this));
         return this;
     }
 
     login(username: string, password: string) {
-        this.addToQueue(async () => {
+        const callbackFn = async function () {
             this.responses.push(
                 await request(this.app)
                     .post('/user/login')
@@ -98,7 +103,9 @@ class TestFixture implements Fixture {
             );
             this.authorizationFields[username] =
                 this.responses[this.responses.length - 1].headers.authorization;
-        });
+        };
+
+        this.addToQueue(callbackFn.bind(this));
         return this;
     }
 
@@ -109,7 +116,7 @@ class TestFixture implements Fixture {
             authenticatedUser?: string;
         }
     ) {
-        this.addToQueue(async () => {
+        const callbackFn = async function () {
             this.responses.push(
                 await request(this.app)
                     .get('/user')
@@ -123,7 +130,9 @@ class TestFixture implements Fixture {
                     )
                     .send({ email })
             );
-        });
+        };
+
+        this.addToQueue(callbackFn.bind(this));
         return this;
     }
 
@@ -132,7 +141,7 @@ class TestFixture implements Fixture {
         invitee: string,
         options?: { customAuthField?: string; authenticatedUser?: string }
     ) {
-        this.addToQueue(async () => {
+        const callbackFn = async function () {
             this.responses.push(
                 await request(this.app)
                     .post('/invite')
@@ -146,7 +155,9 @@ class TestFixture implements Fixture {
                     )
                     .send({ inviter, invitee })
             );
-        });
+        };
+
+        this.addToQueue(callbackFn.bind(this));
         return this;
     }
 
@@ -154,7 +165,7 @@ class TestFixture implements Fixture {
         email: string,
         options?: { customAuthField?: string; authenticatedUser?: string }
     ) {
-        this.addToQueue(async () => {
+        const callbackFn = async function () {
             this.responses.push(
                 await request(this.app)
                     .post('/invite/inbox')
@@ -168,7 +179,9 @@ class TestFixture implements Fixture {
                     )
                     .send()
             );
-        });
+        };
+
+        this.addToQueue(callbackFn.bind(this));
         return this;
     }
 }

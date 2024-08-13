@@ -2,6 +2,10 @@ import InMemoryUserRepositoryFactory from '@/user/in-memory-user-repository';
 import UserService from '@/user/user-service';
 import InviteService, { InvalidInvitationError } from '@/invite/invite-service';
 import InMemoryInviteRepository from '@/invite/in-memory-invite-repository';
+import {
+    InviteServiceEventHandler,
+    InviteEvents
+} from '@/invite/invite-service.d';
 
 const createUserServiceWithInviterAndInvitee = async () => {
     const repository = new InMemoryUserRepositoryFactory();
@@ -51,6 +55,36 @@ describe('invite-service', () => {
                     status: 'PENDING'
                 });
                 jest.useRealTimers();
+            });
+            describe('and the service was created with an invitation created callback', () => {
+                it('publishes an "invite created" message', async () => {
+                    const mockedInvitationCreationCallback = jest.fn();
+                    const userService =
+                        await createUserServiceWithInviterAndInvitee();
+                    const inviteService = new InviteService(
+                        userService,
+                        new InMemoryInviteRepository(),
+                        {
+                            [InviteEvents.INVITATION_CREATED]:
+                                mockedInvitationCreationCallback as InviteServiceEventHandler
+                        }
+                    );
+
+                    await inviteService.create({
+                        inviter: 'player1@gmail.com',
+                        invitee: 'player2@gmail.com'
+                    });
+
+                    expect(
+                        mockedInvitationCreationCallback
+                    ).toHaveBeenCalledWith({
+                        uuid: expect.toBeUuid(),
+                        inviter: 'player1@gmail.com',
+                        invitee: 'player2@gmail.com',
+                        exp: expect.any(Number),
+                        status: 'PENDING'
+                    });
+                });
             });
         });
         describe('and the inviter and invitee are the same user', () => {
