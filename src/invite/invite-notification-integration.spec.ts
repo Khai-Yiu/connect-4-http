@@ -4,7 +4,6 @@ import { Response } from 'supertest';
 import { createServer } from 'http';
 import { Express } from 'express';
 import { AddressInfo } from 'net';
-import { last, pipe, split } from 'ramda';
 import { io as ioc, Socket as ClientSocket } from 'socket.io-client';
 import { Server, Socket as ServerSocket } from 'socket.io';
 import { InviteStatus } from './invite-service.d';
@@ -28,10 +27,7 @@ describe('invite-notification-integration', () => {
     const jwtKeyPair = generateKeyPair('RS256');
     let app: Express;
     let io: Server;
-    let httpServer;
-    let serverSocket: ServerSocket;
-    let clientSocket: ClientSocket;
-    let port: number;
+    let connectionAddress: string;
 
     beforeAll((done) => {
         jwtKeyPair.then((jwtKeyPair) => {
@@ -42,29 +38,24 @@ describe('invite-notification-integration', () => {
                 }
             });
 
-            httpServer = createServer(app);
+            const httpServer = createServer(app);
             io = new Server(httpServer);
+            io.on('connection', (socket) => {});
 
-            io.on('connection', (socket) => {
-                socket.emit('invite_received', 1);
-            });
-
-            httpServer.listen(3003, () => {
-                port = (httpServer.address() as AddressInfo).port;
-                clientSocket = ioc(`http://localhost:${port}`);
-                clientSocket.on('connect', done);
+            httpServer.listen(() => {
+                connectionAddress = `http://localhost:${(httpServer.address() as AddressInfo).port}`;
+                done();
             });
         });
     });
 
     afterAll(() => {
         io.close();
-        clientSocket.disconnect();
     });
 
     describe('given a user is logged in', () => {
         describe('when another user sends them an invite', () => {
-            it.skip('they receive a notification', async () => {
+            it('they receive a notification', async () => {
                 const testFixture = new TestFixture(app);
                 await testFixture
                     .createUser('player1@gmail.com', 'Hello123')
@@ -74,17 +65,17 @@ describe('invite-notification-integration', () => {
                     .run();
 
                 const inviteeResponse = testFixture.getResponses(3) as Response;
-                const authorizationField =
+                const inviteeAuthorizationField =
                     inviteeResponse.headers.authorization;
-                const inviteeToken = pipe(split(' '), last)(authorizationField);
 
-                // ioc(`ws://localhost`, {
-                //     auth: {
-                //         token: inviteeToken
-                //     }
-                // });
+                const clientSocket = ioc(connectionAddress, {
+                    extraHeaders: {
+                        Authorization: inviteeAuthorizationField
+                    }
+                });
 
-                io.on(
+                clientSocket.connect();
+                clientSocket.on(
                     'invite_received',
                     (inviteReceivedMessage: InviteReceivedMessage) => {
                         expect(inviteReceivedMessage).toEqual({
@@ -94,6 +85,8 @@ describe('invite-notification-integration', () => {
                             uuid: expect.toBeUuid(),
                             status: 'PENDING'
                         });
+                        clientSocket.disconnect();
+                        clientSocket.close();
                     }
                 );
 
@@ -103,8 +96,7 @@ describe('invite-notification-integration', () => {
                 const inviteDetailsResponse = testFixture.getResponses(
                     4
                 ) as Response;
-
-                //c.emit('invite_received', inviteDetailsResponse.body.invite);
+                io.emit('invite_received', inviteDetailsResponse.body.invite);
 
                 return waitFor(clientSocket, 'invite_received');
             });

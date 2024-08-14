@@ -1,7 +1,6 @@
 import express from 'express';
 import { RequestHandler } from 'express-serve-static-core';
 import InviteService from '@/invite/invite-service';
-import { io } from 'socket.io-client';
 
 const createGetReceivedInvitesRequestHandler =
     (inviteService: InviteService): RequestHandler =>
@@ -30,9 +29,6 @@ const createCreateInvitationRequestHandler =
                     exp,
                     status
                 };
-
-                const socket = io('http://localhost:3003');
-                socket.emit('invite_received', invitationDetails);
 
                 res.status(201).send({ invite: invitationDetails });
             })

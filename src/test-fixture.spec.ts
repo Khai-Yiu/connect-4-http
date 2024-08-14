@@ -6,17 +6,19 @@ import { Response } from 'supertest';
 import { App } from 'supertest/types';
 
 describe('test-fixture', () => {
-    const jwtKeyPair: Promise<KeySet> = generateKeyPair('RS256');
+    let jwtKeyPair: KeySet;
     let app: App;
 
+    beforeAll(async () => {
+        jwtKeyPair = await generateKeyPair('RS256');
+    });
+
     beforeEach(() => {
-        jwtKeyPair.then((jwtKeyPair) => {
-            app = appFactory({
-                routerParameters: {
-                    stage: 'test',
-                    keySet: jwtKeyPair
-                }
-            });
+        app = appFactory({
+            routerParameters: {
+                stage: 'test',
+                keySet: jwtKeyPair
+            }
         });
     });
 

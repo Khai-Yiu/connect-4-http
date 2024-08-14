@@ -14,3 +14,16 @@ export type InviteDetails = {
 export enum InviteStatus {
     PENDING = 'PENDING'
 }
+
+export enum InviteEvents {
+    INVITATION_CREATED = 'INVITATION_CREATED'
+}
+
+export type InviteServiceEventHandler = <InviteDetails>(
+    message: InviteDetails
+) => Promise<void>;
+
+export type InviteServiceEventHandlers = Record<
+    InviteEvents,
+    InviteServiceEventHandler
+>;
