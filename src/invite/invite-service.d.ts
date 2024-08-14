@@ -19,7 +19,7 @@ export enum InviteEvents {
     INVITATION_CREATED = 'INVITATION_CREATED'
 }
 
-export type InviteServiceEventHandler = <InviteDetails>(
+export type InviteServiceEventHandler = <T extends InviteDetails>(
     message: InviteDetails
 ) => Promise<void>;
 
