@@ -5,11 +5,11 @@ import {
 } from '@/invite/invite-service.d';
 
 const createInviteEventHandlers = (
-    eventPublisher: (queue: string, payload: any) => Promise<void>
+    eventPublisher: (queue: string, payload: unknown) => Promise<unknown>
 ): InviteServiceEventHandlers => {
     return {
-        [InviteEvents.INVITATION_CREATED]: (payload: InviteDetails) =>
-            eventPublisher('invite_created', payload)
+        [InviteEvents.INVITATION_CREATED]: (inviteDetails: InviteDetails) =>
+            eventPublisher('invite_created', inviteDetails)
     };
 };
 

@@ -29,19 +29,27 @@ const createUserServiceWithInviterAndInvitee = async () => {
 };
 
 describe('invite-service', () => {
+    let inviteService: InviteService;
+    let currentTime: number;
+
+    beforeEach(async () => {
+        jest.useFakeTimers({ doNotFake: ['setImmediate'] });
+        currentTime = Date.now();
+        jest.setSystemTime(currentTime);
+
+        inviteService = new InviteService(
+            await createUserServiceWithInviterAndInvitee(),
+            new InMemoryInviteRepository()
+        );
+    });
+
+    afterEach(async () => {
+        jest.useRealTimers();
+    });
+
     describe('given an inviter who is an existing user', () => {
         describe('and an invitee who is an existing user', () => {
             it('creates an invite', async () => {
-                jest.useFakeTimers({ doNotFake: ['setImmediate'] });
-                const currentTime = Date.now();
-                jest.setSystemTime(currentTime);
-
-                const userService =
-                    await createUserServiceWithInviterAndInvitee();
-                const inviteService = new InviteService(
-                    userService,
-                    new InMemoryInviteRepository()
-                );
                 const inviteDetails = await inviteService.create({
                     inviter: 'player1@gmail.com',
                     invitee: 'player2@gmail.com'
@@ -54,15 +62,12 @@ describe('invite-service', () => {
                     exp: currentTime + lengthOfDayInMilliseconds,
                     status: 'PENDING'
                 });
-                jest.useRealTimers();
             });
             describe('and the service was created with an invitation created callback', () => {
                 it('publishes an "invite created" message', async () => {
                     const mockedInvitationCreationCallback = jest.fn();
-                    const userService =
-                        await createUserServiceWithInviterAndInvitee();
                     const inviteService = new InviteService(
-                        userService,
+                        await createUserServiceWithInviterAndInvitee(),
                         new InMemoryInviteRepository(),
                         {
                             [InviteEvents.INVITATION_CREATED]:
@@ -89,20 +94,6 @@ describe('invite-service', () => {
         });
         describe('and the inviter and invitee are the same user', () => {
             it('throws an InvalidInvitationError', async () => {
-                const userService = new UserService(
-                    new InMemoryUserRepositoryFactory()
-                );
-                const inviterDetails = {
-                    firstName: 'Player',
-                    lastName: 'One',
-                    email: 'player1@gmail.com',
-                    password: 'Hello123'
-                };
-                await userService.create(inviterDetails);
-                const inviteService = new InviteService(
-                    userService,
-                    new InMemoryInviteRepository()
-                );
                 const inviteCreationDetails = {
                     inviter: 'player1@gmail.com',
                     invitee: 'player1@gmail.com'
@@ -150,12 +141,6 @@ describe('invite-service', () => {
             describe('and an invitee who is an existing user', () => {
                 describe('and the inviter invites the invitee', () => {
                     it('returns all invites', async () => {
-                        const userService =
-                            await createUserServiceWithInviterAndInvitee();
-                        const inviteService = new InviteService(
-                            userService,
-                            new InMemoryInviteRepository()
-                        );
                         const receivedInviteDetails =
                             await inviteService.create({
                                 inviter: 'player1@gmail.com',

@@ -1,5 +1,5 @@
 {
-    "cSpell.words": ["Lamington", "outfile"],
+    "cSpell.words": ["Lamington", "outfile", "rabbitmq", "testcontainers"],
     "cSpell.ignoreWords": ["lolololololololololol"],
     "editor.codeActionsOnSave": {
         "source.removeUnusedImports": "always"

@@ -20,8 +20,8 @@ export enum InviteEvents {
 }
 
 export type InviteServiceEventHandler = <T extends InviteDetails>(
-    message: InviteDetails
-) => Promise<void>;
+    message: T
+) => Promise<unknown>;
 
 export type InviteServiceEventHandlers = Record<
     InviteEvents,
