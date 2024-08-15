@@ -41,6 +41,8 @@ const createAuthenticationMiddleware =
     };
 
 const appFactory = ({ routerParameters }: AppParameters) => {
+    //createInviteEventListener(subscription, notificationFn);
+
     const routers = resolveRouters(routerParameters);
     const app = express();
     app.use(express.json());
