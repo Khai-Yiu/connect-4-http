@@ -13,7 +13,7 @@ describe('create-invite-event-consumer', () => {
             createInviteEventListener(subscriptionFn, notificationFn);
 
             describe('when an "invite_created" event is received', () => {
-                it('the inviter notifies the invitee', () => {
+                it('notifies the invitee', () => {
                     subscriptionFn.next({
                         type: InviteEvents.INVITATION_CREATED,
                         payload: {

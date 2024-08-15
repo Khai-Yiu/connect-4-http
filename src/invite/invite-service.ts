@@ -57,7 +57,7 @@ export default class InviteService implements InviteServiceInterface {
         });
 
         await this.eventHandlers[InviteEvents.INVITATION_CREATED](
-            inviteDetails
+            inviteDetails as InviteDetails
         );
 
         return inviteDetails as InviteDetails;

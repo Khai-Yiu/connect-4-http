@@ -3,19 +3,26 @@ import appFactory from '@/app';
 import { generateKeyPair, jwtDecrypt } from 'jose';
 import { last, path, pipe, split } from 'ramda';
 import { App } from 'supertest/types';
-import TestFixture from './test-fixture';
-import { KeySet } from './global';
+import TestFixture from '@/test-fixture/test-fixture';
+import { KeySet } from '@/global';
 
 describe('user-integration', () => {
     let app: App;
     let jwtKeyPair: KeySet;
     let testFixture: TestFixture;
+    let currentDateInMilliseconds: number;
 
     beforeAll(async () => {
         jwtKeyPair = await generateKeyPair('RS256');
     });
 
     beforeEach(() => {
+        jest.useFakeTimers({
+            doNotFake: ['setImmediate']
+        });
+        currentDateInMilliseconds = Date.now();
+        jest.setSystemTime(currentDateInMilliseconds);
+
         app = appFactory({
             routerParameters: {
                 stage: 'test',
@@ -23,6 +30,10 @@ describe('user-integration', () => {
             }
         });
         testFixture = new TestFixture(app);
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
     });
 
     describe('signup', () => {
@@ -89,12 +100,6 @@ describe('user-integration', () => {
         describe('given a user already exists', () => {
             describe('and they provide the correct credentials', () => {
                 it('they are provided with a session token', async () => {
-                    jest.useFakeTimers({
-                        doNotFake: ['setImmediate']
-                    });
-                    const dateInMilliseconds = Date.now();
-                    jest.setSystemTime(dateInMilliseconds);
-
                     await testFixture
                         .createUser('dung.eater@gmail.com', 'IAmTheDungEater')
                         .login('dung.eater@gmail.com', 'IAmTheDungEater')
@@ -113,7 +118,9 @@ describe('user-integration', () => {
                         jwtKeyPair.privateKey
                     );
                     const durationOfADayInSeconds = 1 * 24 * 60 * 60;
-                    const dateInSeconds = Math.trunc(dateInMilliseconds / 1000);
+                    const dateInSeconds = Math.trunc(
+                        currentDateInMilliseconds / 1000
+                    );
                     expect(protectedHeader).toEqual({
                         alg: 'RSA-OAEP-256',
                         typ: 'JWT',
@@ -128,7 +135,6 @@ describe('user-integration', () => {
                         username: 'dung.eater@gmail.com',
                         roles: []
                     });
-                    jest.useRealTimers();
                 });
             });
             describe('and they provide incorrect credentials', () => {
@@ -192,10 +198,6 @@ describe('user-integration', () => {
             });
             describe('and their token is expired', () => {
                 it('responds with http status code 401', async () => {
-                    jest.useFakeTimers({
-                        doNotFake: ['setImmediate']
-                    });
-
                     await testFixture
                         .createUser('dung.eater@gmail.com', 'IAmTheDungEater')
                         .login('dung.eater@gmail.com', 'IAmTheDungEater')

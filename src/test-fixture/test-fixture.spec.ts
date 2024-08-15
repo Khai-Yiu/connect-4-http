@@ -1,4 +1,4 @@
-import TestFixture from '@/test-fixture';
+import TestFixture from '@/test-fixture/test-fixture';
 import { generateKeyPair } from 'jose';
 import appFactory from '@/app';
 import { KeySet } from './global';

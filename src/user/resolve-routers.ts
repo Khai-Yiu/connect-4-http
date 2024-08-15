@@ -17,7 +17,7 @@ export enum RouterTypes {
 export type RouterParameters = {
     stage: Stage;
     keySet: KeySet;
-    publishEvent: EventPublisher<unknown, unknown>;
+    publishEvent?: EventPublisher<unknown, unknown>;
 };
 
 export const resolveRouters = ({

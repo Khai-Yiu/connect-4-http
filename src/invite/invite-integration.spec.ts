@@ -1,6 +1,6 @@
 import appFactory from '@/app';
 import { KeySet } from '@/global';
-import TestFixture from '@/test-fixture';
+import TestFixture from '@/test-fixture/test-fixture';
 import { generateKeyPair } from 'jose';
 import { App } from 'supertest/types';
 import { Response } from 'supertest';
@@ -9,19 +9,33 @@ describe('invite-integration', () => {
     let app: App;
     let jwtKeyPair: KeySet;
     let testFixture: TestFixture;
+    let currentDateInMilliseconds: number;
 
     beforeAll(async () => {
         jwtKeyPair = await generateKeyPair('RS256');
     });
+
     beforeEach(() => {
+        jest.useFakeTimers({
+            doNotFake: ['setImmediate']
+        });
+        currentDateInMilliseconds = Date.now();
+        jest.setSystemTime(currentDateInMilliseconds);
+
         app = appFactory({
             routerParameters: {
                 stage: 'test',
                 keySet: jwtKeyPair
             }
         });
+
         testFixture = new TestFixture(app);
     });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
     describe('creating an invite', () => {
         describe('given the inviter is not logged in', () => {
             describe('when the inviter sends an invitation', () => {
@@ -42,10 +56,6 @@ describe('invite-integration', () => {
                 describe('and an invitee that is an existing user', () => {
                     describe('when the inviter sends an invitation on behalf of another user', () => {
                         it('return http status code 401', async () => {
-                            jest.useFakeTimers({ doNotFake: ['setImmediate'] });
-                            const currentTime = Date.now();
-                            jest.setSystemTime(currentTime);
-
                             await testFixture
                                 .createUser('player1@gmail.com', 'Hello123')
                                 .createUser('player2@gmail.com', 'Hello123')
@@ -65,15 +75,10 @@ describe('invite-integration', () => {
                             expect(response.body.errors).toEqual([
                                 'You can not send an invite as another user.'
                             ]);
-                            jest.useRealTimers();
                         });
                     });
                     describe('when the inviter sends an invitation to the invitee', () => {
                         it('creates an invitation', async () => {
-                            jest.useFakeTimers({ doNotFake: ['setImmediate'] });
-                            const currentTime = Date.now();
-                            jest.setSystemTime(currentTime);
-
                             await testFixture
                                 .createUser('player1@gmail.com', 'Hello123')
                                 .createUser('player2@gmail.com', 'Hello123')
@@ -93,10 +98,11 @@ describe('invite-integration', () => {
                                 uuid: expect.toBeUuid(),
                                 inviter: 'player1@gmail.com',
                                 invitee: 'player2@gmail.com',
-                                exp: currentTime + lengthOfDayInMilliseconds,
+                                exp:
+                                    currentDateInMilliseconds +
+                                    lengthOfDayInMilliseconds,
                                 status: 'PENDING'
                             });
-                            jest.useRealTimers();
                         });
                     });
                 });
@@ -144,10 +150,6 @@ describe('invite-integration', () => {
             describe('and a user logged in as the invites', () => {
                 describe('when the user retrieves their received invites', () => {
                     it('their received invites will be retrieved', async () => {
-                        jest.useFakeTimers({ doNotFake: ['setImmediate'] });
-                        const currentTime = Date.now();
-                        jest.setSystemTime(currentTime);
-
                         await testFixture
                             .createUser('player1@gmail.com', 'Hello123')
                             .createUser('player2@gmail.com', 'Hello123')
@@ -175,11 +177,12 @@ describe('invite-integration', () => {
                                 uuid: expect.toBeUuid(),
                                 inviter: 'player1@gmail.com',
                                 invitee: 'player2@gmail.com',
-                                exp: currentTime + lengthOfDayInMilliseconds,
+                                exp:
+                                    currentDateInMilliseconds +
+                                    lengthOfDayInMilliseconds,
                                 status: 'PENDING'
                             }
                         ]);
-                        jest.useRealTimers();
                     });
                 });
             });
