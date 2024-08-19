@@ -58,9 +58,8 @@ describe('create-dispatch-notification', () => {
                     recipientSocket.disconnect();
                 });
 
-                const dispatchNotification = new createDispatchNotification(
-                    recipientSocket
-                );
+                const dispatchNotification =
+                    createDispatchNotification(recipientSocket);
                 dispatchNotification({
                     recipient: 'player1@gmail.com',
                     payload: {}
