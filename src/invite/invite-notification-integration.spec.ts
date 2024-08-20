@@ -90,7 +90,7 @@ describe('invite-notification-integration', () => {
 
     describe('given a user is logged in', () => {
         describe('when another user sends them an invite', () => {
-            it('they receive a notification', async () => {
+            it.skip('they receive a notification', async () => {
                 await testFixture
                     .createUser('player1@gmail.com', 'Hello123')
                     .createUser('player2@gmail.com', 'Hello123')

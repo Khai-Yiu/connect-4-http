@@ -1,9 +1,9 @@
-import { Socket } from 'socket.io-client';
+import { Socket } from 'socket.io';
 
-const createDispatchNotification = (socket: Socket) => {
-    return function dispatchNotification(eventDetails) {
-        socket.emit('event_received', eventDetails);
+const createDispatchNotification =
+    (socket: Socket) =>
+    (notification: { recipient: string; type: string; payload: object }) => {
+        socket.emit(notification.type, notification.payload);
     };
-};
 
 export default createDispatchNotification;

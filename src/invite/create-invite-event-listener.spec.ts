@@ -2,7 +2,7 @@ import { InviteEvents, InviteStatus } from '@/invite/invite-service.d';
 import { Subject } from 'rxjs';
 import createInviteEventListener, {
     InviteCreatedEvent
-} from '@/invite/create-invite-event-consumer';
+} from '@/invite/create-invite-event-listener';
 
 describe('create-invite-event-consumer', () => {
     describe('given an event subscription', () => {
