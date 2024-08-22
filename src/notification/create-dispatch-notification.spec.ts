@@ -1,14 +1,14 @@
-import createDispatchNotification from '@/create-dispatch-notification';
-import TestFixture from './test-fixture/test-fixture';
+import createDispatchNotification from '@/notification/create-dispatch-notification';
+import TestFixture from '../test-fixture/test-fixture';
 import { io as ioc, Socket as ClientSocket } from 'socket.io-client';
 import http from 'http';
 import { Server } from 'socket.io';
 import { generateKeyPair, jwtDecrypt } from 'jose';
-import appFactory from './app';
+import appFactory from '../app';
 import { Express } from 'express';
 import { AddressInfo } from 'net';
 import { Response } from 'supertest';
-import { KeySet } from './global';
+import { KeySet } from '../global';
 
 let testFixture: TestFixture;
 let jwtKeyPair: Promise<KeySet>;
