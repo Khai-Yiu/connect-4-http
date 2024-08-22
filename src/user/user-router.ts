@@ -56,7 +56,7 @@ const loginRequestHandlerFactory = (
                     .encrypt(publicKey);
                 res.setHeader('Authorization', `Bearer ${jwt}`).send({
                     notification: {
-                        url: '/notification'
+                        uri: '/notification'
                     }
                 });
             })
