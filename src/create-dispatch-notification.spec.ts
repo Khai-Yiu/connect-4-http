@@ -363,5 +363,66 @@ describe('create-dispatch-notification', () => {
                 });
             });
         });
+        describe('and a message is dispatched to a non-existent recipient', () => {
+            describe('when a message is dispatched to the user', () => {
+                it('only the user receives a message', async () => {
+                    const singleUserPromise = new Promise((resolve) => {
+                        callCreatedDispatchNotificationWhenPromiseResolves =
+                            resolve;
+                    });
+                    let resolveUserReceivesMessagePromise: (
+                        value: unknown
+                    ) => void;
+                    const userReceivedMessagePromise = new Promise(
+                        (resolve) => {
+                            resolveUserReceivesMessagePromise = resolve;
+                        }
+                    );
+                    await testFixture
+                        .createUser('player1@gmail.com', 'Hello123')
+                        .login('player1@gmail.com', 'Hello123')
+                        .run();
+                    const recipientResponse = testFixture.getResponses(
+                        1
+                    ) as Response;
+                    recipientSocket = ioc(connectionAddress, {
+                        auth: {
+                            token: recipientResponse.headers.authorization.split(
+                                ' '
+                            )[1]
+                        }
+                    });
+
+                    recipientSocket.connect();
+                    recipientSocket.on('event', (details) => {
+                        resolveUserReceivesMessagePromise(details);
+                    });
+
+                    await singleUserPromise;
+                    const dispatchNotification =
+                        createDispatchNotification(server);
+
+                    dispatchNotification({
+                        recipient: 'userdoesnotexist@game.com',
+                        type: 'event',
+                        payload: {
+                            message: 'Hello'
+                        }
+                    });
+
+                    dispatchNotification({
+                        recipient: 'player1@gmail.com',
+                        type: 'event',
+                        payload: {
+                            message: 'Hello'
+                        }
+                    });
+
+                    await expect(userReceivedMessagePromise).resolves.toEqual({
+                        message: 'Hello'
+                    });
+                });
+            });
+        });
     });
 });
