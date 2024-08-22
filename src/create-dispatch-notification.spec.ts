@@ -2,23 +2,26 @@ import createDispatchNotification from '@/create-dispatch-notification';
 import TestFixture from './test-fixture/test-fixture';
 import { io as ioc, Socket as ClientSocket } from 'socket.io-client';
 import http from 'http';
-import { Server, Socket } from 'socket.io';
-import { generateKeyPair } from 'jose';
+import { Server } from 'socket.io';
+import { generateKeyPair, jwtDecrypt } from 'jose';
 import appFactory from './app';
 import { Express } from 'express';
 import { AddressInfo } from 'net';
 import { Response } from 'supertest';
+import { KeySet } from './global';
 
 let testFixture: TestFixture;
+let jwtKeyPair: Promise<KeySet>;
 let app: Express;
 let httpServer: http.Server;
 let server: Server;
 let connectionAddress: string;
-let serverSideSocketPromise: Promise<Socket>;
-let resolveServerSocket: (socket: Socket) => void;
+let callCreatedDispatchNotificationWhenPromiseResolves: (
+    value: unknown
+) => void = () => {};
 
 beforeEach(async () => {
-    const jwtKeyPair = generateKeyPair('RS256');
+    jwtKeyPair = generateKeyPair('RS256');
     app = appFactory({
         routerParameters: {
             stage: 'test',
@@ -29,14 +32,19 @@ beforeEach(async () => {
     testFixture = new TestFixture(app);
     httpServer = http.createServer(app);
     server = new Server(httpServer);
-    serverSideSocketPromise = new Promise((resolve) => {
-        resolveServerSocket = resolve;
-    });
     httpServer.listen(() => {
         const port = (httpServer.address() as AddressInfo).port;
         connectionAddress = `http://localhost:${port}`;
     });
-    server.on('connection', resolveServerSocket);
+    server.on('connection', async (socket) => {
+        const token = socket.handshake.auth.token;
+        const { privateKey } = await jwtKeyPair;
+        const { payload } = await jwtDecrypt(token, privateKey);
+        const { username } = payload;
+
+        callCreatedDispatchNotificationWhenPromiseResolves('Resolved');
+        socket.join(username as string);
+    });
 });
 
 afterEach(() => {
@@ -62,6 +70,10 @@ describe('create-dispatch-notification', () => {
 
         describe('when a message is dispatched to the user', () => {
             it('the user receives the message', async () => {
+                const singleUserPromise = new Promise((resolve) => {
+                    callCreatedDispatchNotificationWhenPromiseResolves =
+                        resolve;
+                });
                 let userResolver: (value: unknown) => void;
                 const userPromise = new Promise((resolve) => {
                     userResolver = resolve;
@@ -74,18 +86,20 @@ describe('create-dispatch-notification', () => {
                     1
                 ) as Response;
                 recipientSocket = ioc(connectionAddress, {
-                    extraHeaders: {
-                        Authorization: recipientResponse.headers.authorization
+                    auth: {
+                        token: recipientResponse.headers.authorization.split(
+                            ' '
+                        )[1]
                     }
                 });
+
                 recipientSocket.connect();
                 recipientSocket.on('event', (details) => {
                     userResolver(details);
                 });
 
-                const dispatchNotification = createDispatchNotification(
-                    await serverSideSocketPromise
-                );
+                await singleUserPromise;
+                const dispatchNotification = createDispatchNotification(server);
 
                 dispatchNotification({
                     recipient: 'player1@gmail.com',
@@ -102,6 +116,10 @@ describe('create-dispatch-notification', () => {
         });
         describe('when a message is dispatched to another user', () => {
             it('does not send the message to the user who is not the intended recipient', async () => {
+                const firstUserConnectPromise = new Promise((resolve) => {
+                    callCreatedDispatchNotificationWhenPromiseResolves =
+                        resolve;
+                });
                 let userResolver: (value: unknown) => void;
                 const userPromise = new Promise((resolve) => {
                     userResolver = resolve;
@@ -121,29 +139,36 @@ describe('create-dispatch-notification', () => {
                     3
                 ) as Response;
                 recipientSocket = ioc(connectionAddress, {
-                    extraHeaders: {
-                        Authorization: recipientResponse.headers.authorization
+                    auth: {
+                        token: recipientResponse.headers.authorization.split(
+                            ' '
+                        )[1]
                     }
                 });
                 thirdPartySocket = ioc(connectionAddress, {
-                    extraHeaders: {
-                        Authorization: thirdPartyResponse.headers.authorization
+                    auth: {
+                        token: thirdPartyResponse.headers.authorization.split(
+                            ' '
+                        )[1]
                     }
                 });
 
-                recipientSocket.connect();
                 recipientSocket.on('event', (details) => {
                     userResolver(details);
                 });
 
-                thirdPartySocket.connect();
+                await firstUserConnectPromise;
+                const secondUserConnectPromise = new Promise((resolve) => {
+                    callCreatedDispatchNotificationWhenPromiseResolves =
+                        resolve;
+                });
+
                 thirdPartySocket.on('event', (details) => {
                     expect(true).toBeFalsy();
                 });
 
-                const dispatchNotification = createDispatchNotification(
-                    await serverSideSocketPromise
-                );
+                await secondUserConnectPromise;
+                const dispatchNotification = createDispatchNotification(server);
 
                 dispatchNotification({
                     recipient: 'player1@gmail.com',
@@ -156,6 +181,71 @@ describe('create-dispatch-notification', () => {
                 await expect(userPromise).resolves.toEqual({
                     message: 'Hello'
                 });
+            });
+        });
+        describe('when multiple messages is dispatched to the user', () => {
+            it('the user receives all messages', async () => {
+                const singleUserPromise = new Promise((resolve) => {
+                    callCreatedDispatchNotificationWhenPromiseResolves =
+                        resolve;
+                });
+                let resolveUserReceiveMessagesPromise: (value: unknown) => void;
+                const userReceivedMessagesPromise = new Promise((resolve) => {
+                    resolveUserReceiveMessagesPromise = resolve;
+                });
+                await testFixture
+                    .createUser('player1@gmail.com', 'Hello123')
+                    .login('player1@gmail.com', 'Hello123')
+                    .run();
+                const recipientResponse = testFixture.getResponses(
+                    1
+                ) as Response;
+                recipientSocket = ioc(connectionAddress, {
+                    auth: {
+                        token: recipientResponse.headers.authorization.split(
+                            ' '
+                        )[1]
+                    }
+                });
+
+                recipientSocket.connect();
+                const messages = [];
+                let messagesReceived = 0;
+                recipientSocket.on('event', (details) => {
+                    messagesReceived++;
+                    messages.push(details);
+                    if (messagesReceived == 2) {
+                        resolveUserReceiveMessagesPromise(messages);
+                    }
+                });
+
+                await singleUserPromise;
+                const dispatchNotification = createDispatchNotification(server);
+
+                dispatchNotification({
+                    recipient: 'player1@gmail.com',
+                    type: 'event',
+                    payload: {
+                        message: 'Hello'
+                    }
+                });
+
+                dispatchNotification({
+                    recipient: 'player1@gmail.com',
+                    type: 'event',
+                    payload: {
+                        message: 'Bye'
+                    }
+                });
+
+                await expect(userReceivedMessagesPromise).resolves.toEqual([
+                    {
+                        message: 'Hello'
+                    },
+                    {
+                        message: 'Bye'
+                    }
+                ]);
             });
         });
     });
