@@ -20,11 +20,10 @@ export type RouterParameters = {
     publishEvent?: EventPublisher<unknown, unknown>;
 };
 
-export const resolveRouters = ({
-    stage,
-    keySet,
-    publishEvent = () => Promise.resolve()
-}: RouterParameters): Record<RouterTypes, Router> => {
+export const resolveRouters = (
+    { stage, keySet, publishEvent = () => Promise.resolve() }: RouterParameters,
+    authority: string
+): Record<RouterTypes, Router> => {
     const userRepository =
         stage === 'production'
             ? new InMemoryUserRepositoryFactory()
@@ -41,7 +40,11 @@ export const resolveRouters = ({
     );
 
     return {
-        [RouterTypes.userRouter]: userRouterFactory(userService, keySet),
+        [RouterTypes.userRouter]: userRouterFactory(
+            userService,
+            keySet,
+            authority
+        ),
         [RouterTypes.inviteRouter]: inviteRouterFactory(inviteService)
     };
 };

@@ -29,7 +29,8 @@ const userDetailsRequestHandlerFactory =
 
 const loginRequestHandlerFactory = (
     userService: UserServiceInterface,
-    publicKey?: JwtPublicKey
+    publicKey: JwtPublicKey,
+    authority: string
 ): RequestHandler => {
     return async (req, res, next) => {
         await userService
@@ -55,9 +56,7 @@ const loginRequestHandlerFactory = (
                     .setSubject(username)
                     .encrypt(publicKey);
                 res.setHeader('Authorization', `Bearer ${jwt}`).send({
-                    notification: {
-                        uri: '/notification'
-                    }
+                    links: { notifications: `${authority}/notification` }
                 });
             })
             .catch(() =>
@@ -85,7 +84,11 @@ const registerRequestHandlerFactory =
             .catch(next);
     };
 
-const userRouterFactory = (userService: UserService, keySet: KeySet) => {
+const userRouterFactory = (
+    userService: UserService,
+    keySet: KeySet,
+    authority: string
+) => {
     const userRouter = express.Router();
     userRouter.get(
         '/',
@@ -94,7 +97,7 @@ const userRouterFactory = (userService: UserService, keySet: KeySet) => {
     userRouter.post('/signup', registerRequestHandlerFactory(userService));
     userRouter.post(
         '/login',
-        loginRequestHandlerFactory(userService, keySet.publicKey)
+        loginRequestHandlerFactory(userService, keySet.publicKey, authority)
     );
 
     return userRouter;

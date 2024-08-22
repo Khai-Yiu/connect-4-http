@@ -4,10 +4,11 @@ import { generateKeyPair, jwtDecrypt } from 'jose';
 import { last, path, pipe, split } from 'ramda';
 import TestFixture from '@/test-fixture/test-fixture';
 import { KeySet } from '@/global';
-import { Express } from 'express';
+import { ExpressWithPort } from '@/create-server-side-web-socket';
 
 describe('user-integration', () => {
-    let app: Express;
+    let app: ExpressWithPort;
+    let port: number;
     let jwtKeyPair: KeySet;
     let testFixture: TestFixture;
     let currentDateInMilliseconds: number;
@@ -29,6 +30,7 @@ describe('user-integration', () => {
                 keySet: jwtKeyPair
             }
         });
+        port = app.port;
         testFixture = new TestFixture(app);
     });
 
@@ -143,8 +145,9 @@ describe('user-integration', () => {
                         .run();
 
                     const response = testFixture.getResponses(1) as Response;
-                    expect(response.body.notification).toEqual({
-                        uri: `/notification`
+
+                    expect(response.body.links).toEqual({
+                        notifications: `ws://localhost:${port}/notification`
                     });
                 });
             });

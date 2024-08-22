@@ -6,6 +6,9 @@ import {
 } from '@/user/resolve-routers';
 import { JwtPrivateKey } from './global';
 import { jwtDecrypt } from 'jose';
+import createServerSideWebSocket, {
+    ExpressWithPort
+} from './create-server-side-web-socket';
 
 type AppParameters = {
     routerParameters: RouterParameters;
@@ -41,8 +44,14 @@ const createAuthenticationMiddleware =
     };
 
 const appFactory = ({ routerParameters }: AppParameters) => {
-    const routers = resolveRouters(routerParameters);
-    const app = express();
+    const app = express() as ExpressWithPort;
+
+    createServerSideWebSocket(app, '/notification');
+    const routers = resolveRouters(
+        routerParameters,
+        `ws://localhost:${app.port}`
+    );
+
     app.use(express.json());
     app.use(createAuthenticationMiddleware(routerParameters.keySet.privateKey));
     app.use('/user', routers[RouterTypes.userRouter]);

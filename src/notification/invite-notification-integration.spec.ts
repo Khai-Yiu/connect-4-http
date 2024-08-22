@@ -6,7 +6,7 @@ import { Express } from 'express';
 import { AddressInfo } from 'net';
 import { io as ioc, Socket as ClientSocket } from 'socket.io-client';
 import { Server, Socket as ServerSocket } from 'socket.io';
-import { InviteDetails, InviteStatus } from './invite-service.d';
+import { InviteDetails, InviteStatus } from '../invite/invite-service';
 import TestFixture from '@/test-fixture/test-fixture';
 import {
     RabbitMQContainer,
