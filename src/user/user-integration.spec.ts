@@ -2,12 +2,12 @@ import { Response } from 'supertest';
 import appFactory from '@/app';
 import { generateKeyPair, jwtDecrypt } from 'jose';
 import { last, path, pipe, split } from 'ramda';
-import { App } from 'supertest/types';
 import TestFixture from '@/test-fixture/test-fixture';
 import { KeySet } from '@/global';
+import { Express } from 'express';
 
 describe('user-integration', () => {
-    let app: App;
+    let app: Express;
     let jwtKeyPair: KeySet;
     let testFixture: TestFixture;
     let currentDateInMilliseconds: number;
@@ -134,6 +134,17 @@ describe('user-integration', () => {
                         nbf: dateInSeconds,
                         username: 'dung.eater@gmail.com',
                         roles: []
+                    });
+                });
+                it('receives the relative path to the notifications endpoint', async () => {
+                    await testFixture
+                        .createUser('player1@gmail.com', 'Hello123')
+                        .login('player1@gmail.com', 'Hello123')
+                        .run();
+
+                    const response = testFixture.getResponses(1) as Response;
+                    expect(response.body.notification).toEqual({
+                        uri: `/notification`
                     });
                 });
             });

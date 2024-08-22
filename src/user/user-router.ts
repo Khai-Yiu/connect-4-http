@@ -54,7 +54,11 @@ const loginRequestHandlerFactory = (
                     .setNotBefore('0 sec from now')
                     .setSubject(username)
                     .encrypt(publicKey);
-                res.setHeader('Authorization', `Bearer ${jwt}`).send();
+                res.setHeader('Authorization', `Bearer ${jwt}`).send({
+                    notification: {
+                        url: '/notification'
+                    }
+                });
             })
             .catch(() =>
                 res.status(403).send({ errors: ['Login attempt failed.'] })

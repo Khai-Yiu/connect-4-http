@@ -67,17 +67,8 @@ describe('invite-notification-integration', () => {
         httpServer.listen(() => {
             const port = (httpServer.address() as AddressInfo).port;
             connectionAddress = `http://localhost:${port}`;
-            // server.on('connection', async (socket) => {
-            //     await channel.prefetch(1);
-            //     channel.consume(q.queue, (msg) => {
-            //         const parsedContent = JSON.parse(
-            //             msg.content as unknown as string
-            //         );
-            //         socket.emit('invite_received', parsedContent);
-            //     });
-            // });
         });
-    }, 1000000);
+    });
 
     afterAll(async () => {
         server.close();
