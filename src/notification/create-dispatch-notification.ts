@@ -7,6 +7,7 @@ const createDispatchNotification = (server: Server) => {
         payload: object;
     }) => {
         server
+            .of('/notification')
             .to(notification.recipient)
             .emit(notification.type, notification.payload);
     };

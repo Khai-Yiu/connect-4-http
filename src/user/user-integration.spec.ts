@@ -4,10 +4,10 @@ import { generateKeyPair, jwtDecrypt } from 'jose';
 import { last, path, pipe, split } from 'ramda';
 import TestFixture from '@/test-fixture/test-fixture';
 import { KeySet } from '@/global';
-import { ExpressWithPort } from '@/create-server-side-web-socket';
+import { ExpressWithPortAndSocket } from '@/create-server-side-web-socket';
 
 describe('user-integration', () => {
-    let app: ExpressWithPort;
+    let app: ExpressWithPortAndSocket;
     let port: number;
     let jwtKeyPair: KeySet;
     let testFixture: TestFixture;

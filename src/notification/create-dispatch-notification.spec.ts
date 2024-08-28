@@ -34,9 +34,9 @@ beforeEach(async () => {
     server = new Server(httpServer);
     httpServer.listen(() => {
         const port = (httpServer.address() as AddressInfo).port;
-        connectionAddress = `http://localhost:${port}`;
+        connectionAddress = `http://localhost:${port}/notification`;
     });
-    server.on('connection', async (socket) => {
+    server.of('/notification').on('connection', async (socket) => {
         const token = socket.handshake.auth.token;
         const { privateKey } = await jwtKeyPair;
         const { payload } = await jwtDecrypt(token, privateKey);

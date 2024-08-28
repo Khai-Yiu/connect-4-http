@@ -2,18 +2,32 @@ import { Express } from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import { AddressInfo } from 'net';
+import { jwtDecrypt, KeyLike } from 'jose';
 
-export type ExpressWithPort = Express & { port: number };
+export type ExpressWithPortAndSocket = Express & {
+    port: number;
+    serverSocket: Server;
+};
 
-const createServerSideWebSocket = (app: ExpressWithPort, path: string) => {
+const createServerSideWebSocket = (
+    app: ExpressWithPortAndSocket,
+    path: string,
+    privateKey: KeyLike
+) => {
     const httpServer = http.createServer(app).unref();
+    const io = new Server(httpServer);
 
     httpServer.listen();
     app.port = (httpServer.address() as AddressInfo).port;
+    app.serverSocket = io;
 
-    const io = new Server(httpServer);
+    io.of(path).on('connection', async (socket) => {
+        const {
+            payload: { username }
+        } = await jwtDecrypt(socket.handshake.auth.token, privateKey);
 
-    io.of(path).on('connection', (socket) => {});
+        socket.join(username as string);
+    });
 };
 
 export default createServerSideWebSocket;
