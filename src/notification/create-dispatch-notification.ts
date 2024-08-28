@@ -1,11 +1,13 @@
 import { Server } from 'socket.io';
 
+export type NotificationDetails = {
+    recipient: string;
+    type: string;
+    payload: object;
+};
+
 const createDispatchNotification = (server: Server) => {
-    return (notification: {
-        recipient: string;
-        type: string;
-        payload: object;
-    }) => {
+    return (notification: NotificationDetails) => {
         server
             .of('/notification')
             .to(notification.recipient)

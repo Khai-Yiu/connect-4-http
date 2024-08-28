@@ -183,7 +183,6 @@ describe('notification-integration', () => {
 
                     recipientSocket.on('event', (details) => {
                         resolveUserNotificationPromise(details);
-                        recipientSocket.disconnect();
                     });
 
                     const thirdPartySocket = ioc(notifications, {
@@ -198,7 +197,6 @@ describe('notification-integration', () => {
                     thirdPartySocket.connect();
                     thirdPartySocket.on('event', (details) => {
                         expect(true).toBeFalsy();
-                        thirdPartySocket.disconnect();
                     });
 
                     await userConnectedPromise;
@@ -214,11 +212,14 @@ describe('notification-integration', () => {
                         }
                     });
 
-                    return expect(
+                    await expect(
                         userReceivedNotificationPromise
                     ).resolves.toEqual({
                         message: 'Hello'
                     });
+
+                    recipientSocket.disconnect();
+                    thirdPartySocket.disconnect();
                 });
             });
         });
