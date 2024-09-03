@@ -1,16 +1,13 @@
 import appFactory from '@/app';
 import { generateKeyPair } from 'jose';
 import { Response } from 'supertest';
-import { io as ioc } from 'socket.io-client';
+import { io as ioc, Socket } from 'socket.io-client';
 import { Server } from 'socket.io';
-import { InviteDetails, InviteStatus } from '@/invite/invite-service.d';
+import { InviteStatus } from '@/invite/invite-service.d';
 import TestFixture from '@/test-fixture/test-fixture';
 import { ExpressWithPortAndSocket } from '@/create-server-side-web-socket';
-import createDispatchNotification from './create-dispatch-notification';
 import { Subject } from 'rxjs';
-import createInviteEventListener, {
-    InviteCreatedEvent
-} from '@/invite/create-invite-event-listener';
+import { InviteCreatedEvent } from '@/invite/create-invite-event-listener';
 
 type InviteReceivedMessage = {
     inviter: string;
@@ -25,31 +22,24 @@ describe('invite-notification-integration', () => {
     let port: number;
     let socketServer: Server;
     let testFixture: TestFixture;
+    let internalEventPublisher;
 
     beforeAll(async () => {
         const jwtKeyPair = generateKeyPair('RS256');
-        const messageSubject = new Subject();
+        const messageSubject: Subject<InviteCreatedEvent> = new Subject();
+        internalEventPublisher = jest.fn((content: InviteCreatedEvent) =>
+            Promise.resolve(messageSubject.next({ ...content }))
+        );
         app = appFactory({
-            routerParameters: {
-                stage: 'test',
-                keySet: await jwtKeyPair,
-                publishEvent: (queue, content: InviteDetails) =>
-                    Promise.resolve(messageSubject.next(content))
-            }
+            stage: 'test',
+            keySet: await jwtKeyPair,
+            internalEventPublisher,
+            internalEventSubscriber: messageSubject
         });
 
         port = app.port;
         socketServer = app.serverSocket;
         testFixture = new TestFixture(app);
-        const dispatchNotification = createDispatchNotification(socketServer);
-        createInviteEventListener<InviteCreatedEvent>(
-            messageSubject,
-            (notificationDetails) =>
-                dispatchNotification({
-                    ...notificationDetails,
-                    type: 'invite_received'
-                })
-        );
     });
 
     afterAll(async () => {
@@ -57,10 +47,17 @@ describe('invite-notification-integration', () => {
     });
 
     describe('given a user is logged in', () => {
-        describe('when another user sends them an invite', () => {
-            it('they receive a notification', async () => {
+        describe('and connected to the notification service', () => {
+            let inviteeSocket: Socket;
+            let inviteePromise;
+
+            beforeEach(async () => {
+                let resolveInviteeSocketConnects: (value: unknown) => void;
+                const inviteeSocketConnectedPromise = new Promise((resolve) => {
+                    resolveInviteeSocketConnects = resolve;
+                });
                 let resolveInviteePromise: (value: unknown) => void;
-                const inviteePromise = new Promise((resolve) => {
+                inviteePromise = new Promise((resolve) => {
                     resolveInviteePromise = resolve;
                 });
 
@@ -84,7 +81,10 @@ describe('invite-notification-integration', () => {
                     }
                 });
 
-                inviteeSocket.connect();
+                inviteeSocket.on('connect', () => {
+                    resolveInviteeSocketConnects('Connected');
+                });
+
                 inviteeSocket.on(
                     'invite_received',
                     (inviteReceivedMessage: InviteReceivedMessage) => {
@@ -93,16 +93,22 @@ describe('invite-notification-integration', () => {
                     }
                 );
 
-                await testFixture
-                    .createInvite('player1@gmail.com', 'player2@gmail.com')
-                    .run();
+                inviteeSocket.connect();
+                await inviteeSocketConnectedPromise;
+            });
+            describe('when another user sends them an invite', () => {
+                it('they receive a notification', async () => {
+                    await testFixture
+                        .createInvite('player1@gmail.com', 'player2@gmail.com')
+                        .run();
 
-                return expect(inviteePromise).resolves.toEqual({
-                    inviter: 'player1@gmail.com',
-                    invitee: 'player2@gmail.com',
-                    exp: expect.any(Number),
-                    uuid: expect.toBeUuid(),
-                    status: 'PENDING'
+                    return expect(inviteePromise).resolves.toEqual({
+                        inviter: 'player1@gmail.com',
+                        invitee: 'player2@gmail.com',
+                        exp: expect.any(Number),
+                        uuid: expect.toBeUuid(),
+                        status: 'PENDING'
+                    });
                 });
             });
         });

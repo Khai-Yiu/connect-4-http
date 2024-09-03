@@ -26,6 +26,7 @@ describe('create-invite-event-consumer', () => {
                     });
                     expect(notificationFn).toHaveBeenCalledWith({
                         recipient: 'some@gmail.com',
+                        type: 'invite_received',
                         payload: {
                             inviter: 'inviter@gmail.com',
                             invitee: 'some@gmail.com',

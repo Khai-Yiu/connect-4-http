@@ -5,10 +5,8 @@ import { generateKeyPair } from 'jose';
 
 const createDefaultApp = async () => {
     return appFactory({
-        routerParameters: {
-            stage: 'test',
-            keySet: await generateKeyPair('RS256')
-        }
+        stage: 'test',
+        keySet: await generateKeyPair('RS256')
     });
 };
 

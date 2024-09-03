@@ -15,10 +15,8 @@ describe('test-fixture', () => {
 
     beforeEach(() => {
         app = appFactory({
-            routerParameters: {
-                stage: 'test',
-                keySet: jwtKeyPair
-            }
+            stage: 'test',
+            keySet: jwtKeyPair
         });
     });
 
@@ -31,10 +29,8 @@ describe('test-fixture', () => {
     describe('given an App parameter is provided', () => {
         it('returns a test fixture', async () => {
             const app = appFactory({
-                routerParameters: {
-                    stage: 'test',
-                    keySet: await generateKeyPair('RS256')
-                }
+                stage: 'test',
+                keySet: await generateKeyPair('RS256')
             });
             const testFixture = new TestFixture(app);
             expect(testFixture).toBeInstanceOf(TestFixture);

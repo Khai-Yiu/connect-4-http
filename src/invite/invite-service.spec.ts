@@ -3,7 +3,7 @@ import UserService from '@/user/user-service';
 import InviteService, { InvalidInvitationError } from '@/invite/invite-service';
 import InMemoryInviteRepository from '@/invite/in-memory-invite-repository';
 import {
-    InviteServiceEventHandler,
+    InviteServiceEventPublisher,
     InviteEvents
 } from '@/invite/invite-service.d';
 
@@ -71,7 +71,7 @@ describe('invite-service', () => {
                         new InMemoryInviteRepository(),
                         {
                             [InviteEvents.INVITATION_CREATED]:
-                                mockedInvitationCreationCallback as InviteServiceEventHandler
+                                mockedInvitationCreationCallback as InviteServiceEventPublisher
                         }
                     );
 

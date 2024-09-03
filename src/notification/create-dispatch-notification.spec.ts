@@ -23,11 +23,8 @@ let callCreatedDispatchNotificationWhenPromiseResolves: (
 beforeEach(async () => {
     jwtKeyPair = generateKeyPair('RS256');
     app = appFactory({
-        routerParameters: {
-            stage: 'test',
-            keySet: await jwtKeyPair,
-            publishEvent: (queue, payload) => Promise.resolve()
-        }
+        stage: 'test',
+        keySet: await jwtKeyPair
     });
     testFixture = new TestFixture(app);
     httpServer = http.createServer(app);

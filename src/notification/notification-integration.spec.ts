@@ -17,11 +17,9 @@ describe('notification-integration', () => {
 
     beforeEach(async () => {
         app = appFactory({
-            routerParameters: {
-                stage: 'test',
-                keySet: await jwtKeyPair,
-                publishEvent: (queue, payload) => Promise.resolve()
-            }
+            stage: 'test',
+            keySet: await jwtKeyPair,
+            publishEvent: (queue, payload) => Promise.resolve()
         });
         port = app.port;
         server = app.serverSocket;

@@ -6,8 +6,8 @@ import { Stage, KeySet } from '@/global';
 import InviteService from '@/invite/invite-service';
 import inviteRouterFactory from '@/invite/invite-router';
 import InMemoryInviteRepository from '@/invite/in-memory-invite-repository';
-import createInviteEventHandlers from '@/invite/create-invite-event-handlers';
-import { EventPublisher } from '@/app.d';
+import createInviteEventPublishers from '@/invite/create-invite-event-publishers';
+import { InternalEventPublisher } from '@/app.d';
 
 export enum RouterTypes {
     'userRouter',
@@ -17,13 +17,16 @@ export enum RouterTypes {
 export type RouterParameters = {
     stage: Stage;
     keySet: KeySet;
-    publishEvent?: EventPublisher<unknown, unknown>;
+    authority: string;
+    internalEventPublisher: InternalEventPublisher<unknown, unknown>;
 };
 
-export const resolveRouters = (
-    { stage, keySet, publishEvent = () => Promise.resolve() }: RouterParameters,
-    authority: string
-): Record<RouterTypes, Router> => {
+export const resolveRouters = ({
+    stage,
+    keySet,
+    authority,
+    internalEventPublisher = () => Promise.resolve()
+}: RouterParameters): Record<RouterTypes, Router> => {
     const userRepository =
         stage === 'production'
             ? new InMemoryUserRepositoryFactory()
@@ -36,7 +39,7 @@ export const resolveRouters = (
     const inviteService = new InviteService(
         userService,
         inviteRepository,
-        createInviteEventHandlers(publishEvent)
+        createInviteEventPublishers(internalEventPublisher)
     );
 
     return {

@@ -7,7 +7,7 @@ export type NotificationDetails = {
 };
 
 const createDispatchNotification = (server: Server) => {
-    return (notification: NotificationDetails) => {
+    return async (notification: NotificationDetails) => {
         server
             .of('/notification')
             .to(notification.recipient)

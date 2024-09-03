@@ -23,10 +23,8 @@ describe('invite-integration', () => {
         jest.setSystemTime(currentDateInMilliseconds);
 
         app = appFactory({
-            routerParameters: {
-                stage: 'test',
-                keySet: jwtKeyPair
-            }
+            stage: 'test',
+            keySet: jwtKeyPair
         });
 
         testFixture = new TestFixture(app);
