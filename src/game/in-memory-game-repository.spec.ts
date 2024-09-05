@@ -64,5 +64,13 @@ describe('in-memory-game-repository', () => {
                 });
             });
         });
+        describe('when provided with the id of a non-existent game', () => {
+            it('throws a "NoSuchGameError"', () => {
+                const gameUuid = '464bdc93-98d8-4c50-af86-ccef0b61f74e';
+                expect(() => gameRepository.loadGame(gameUuid)).rejects.toThrow(
+                    new NoSuchGameError()
+                );
+            });
+        });
     });
 });
