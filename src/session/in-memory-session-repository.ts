@@ -6,6 +6,7 @@ import {
 
 export interface SessionRepository {
     create: (sessionCreationDetails: SessionCreationDetails) => SessionDetails;
+    getSession: (sessionUuid: Uuid) => SessionDetails;
 }
 
 export default class InMemorySessionRepository {
@@ -16,7 +17,9 @@ export default class InMemorySessionRepository {
     }
 
     create({ inviterUuid, inviteeUuid }: SessionCreationDetails) {
+        const sessionUuid = crypto.randomUUID();
         const sessionDetails = {
+            uuid: sessionUuid,
             inviter: {
                 uuid: inviterUuid
             },
@@ -24,9 +27,12 @@ export default class InMemorySessionRepository {
                 uuid: inviteeUuid
             }
         };
-        const sessionUuid = crypto.randomUUID();
         this.sessions.set(sessionUuid, sessionDetails);
 
         return sessionDetails;
+    }
+
+    getSession(sessionUuid: Uuid) {
+        return this.sessions.get(sessionUuid);
     }
 }
