@@ -1,8 +1,42 @@
+import { GameDetails, GameStatus } from './game-service.d';
 import InMemoryGameRepository from './in-memory-game-repository';
 
 describe('in-memory-game-repository', () => {
-    it('creates an in-memory game repository', () => {
-        const repository = new InMemoryGameRepository();
-        expect(repository).toBeInstanceOf(InMemoryGameRepository);
+    let gameRepository: InMemoryGameRepository;
+
+    beforeEach(() => {
+        gameRepository = new InMemoryGameRepository();
+    });
+
+    describe('creating a game repository', () => {
+        it('creates an in-memory game repository', () => {
+            expect(gameRepository).toBeInstanceOf(InMemoryGameRepository);
+        });
+    });
+    describe('saving a game', () => {
+        describe('when given a game to save', () => {
+            it('saves the game', async () => {
+                const gameDetails = {
+                    activePlayer: 1,
+                    players: {
+                        1: {
+                            playerNumber: 1,
+                            remainingDiscs: 2
+                        },
+                        2: {
+                            playerNumber: 2,
+                            remainingDiscs: 2
+                        }
+                    },
+                    gameStatus: GameStatus.IN_PROGRESS
+                } as GameDetails;
+                const savedGameDetails =
+                    await gameRepository.saveGame(gameDetails);
+                expect(savedGameDetails).toEqual({
+                    uuid: expect.toBeUuid(),
+                    ...gameDetails
+                });
+            });
+        });
     });
 });
