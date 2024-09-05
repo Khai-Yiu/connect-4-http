@@ -1,4 +1,5 @@
 import { Uuid } from '@/global';
+import Game from '@/game/game';
 
 export type BoardDimensions = {
     rows: number;
@@ -31,3 +32,4 @@ export type GameDetails = {
 };
 
 export type PersistedGameDetails = GameDetails & { uuid: Uuid };
+export type GameFactory = (...args: ConstructorParameters<typeof Game>) => Game;

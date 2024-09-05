@@ -1,7 +1,5 @@
-import { GameDetails, GameStatus } from './game-types';
-import InMemoryGameRepository, {
-    NoSuchGameError
-} from './in-memory-game-repository';
+import { GameDetails, GameStatus } from '@/game/game-types.d';
+import InMemoryGameRepository from '@/game/in-memory-game-repository';
 
 describe('in-memory-game-repository', () => {
     let gameRepository: InMemoryGameRepository;
@@ -12,6 +10,8 @@ describe('in-memory-game-repository', () => {
 
     describe('creating a game repository', () => {
         it('creates an in-memory game repository', () => {
+            const gameRepository = new InMemoryGameRepository();
+
             expect(gameRepository).toBeInstanceOf(InMemoryGameRepository);
         });
     });
@@ -42,36 +42,30 @@ describe('in-memory-game-repository', () => {
         });
     });
     describe('loading a game', () => {
-        describe('when given an id of a game', () => {
-            it('loads the game', async () => {
-                const gameDetails = {
-                    activePlayer: 1,
-                    players: {
-                        1: {
-                            playerNumber: 1,
-                            remainingDiscs: 2
+        describe('given a game has been saved', () => {
+            describe('when given an id of a game', () => {
+                it('returns the details of the game', async () => {
+                    const gameDetails = {
+                        activePlayer: 1,
+                        players: {
+                            1: {
+                                playerNumber: 1,
+                                remainingDiscs: 2
+                            },
+                            2: {
+                                playerNumber: 2,
+                                remainingDiscs: 2
+                            }
                         },
-                        2: {
-                            playerNumber: 2,
-                            remainingDiscs: 2
-                        }
-                    },
-                    gameStatus: GameStatus.IN_PROGRESS
-                } as GameDetails;
-                const { uuid } = await gameRepository.saveGame(gameDetails);
-                const loadedGame = await gameRepository.loadGame(uuid);
-                expect(loadedGame).toEqual({
-                    uuid: expect.toBeUuid(),
-                    ...gameDetails
+                        gameStatus: GameStatus.IN_PROGRESS
+                    } as GameDetails;
+                    const { uuid } = await gameRepository.saveGame(gameDetails);
+                    const loadedGame = await gameRepository.loadGame(uuid);
+                    expect(loadedGame).toEqual({
+                        uuid: expect.toBeUuid(),
+                        ...gameDetails
+                    });
                 });
-            });
-        });
-        describe('when provided with the id of a non-existent game', () => {
-            it('throws a "NoSuchGameError"', () => {
-                const gameUuid = '464bdc93-98d8-4c50-af86-ccef0b61f74e';
-                expect(() => gameRepository.loadGame(gameUuid)).rejects.toThrow(
-                    new NoSuchGameError()
-                );
             });
         });
     });

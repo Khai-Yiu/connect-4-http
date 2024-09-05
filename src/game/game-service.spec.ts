@@ -1,7 +1,8 @@
 import InMemoryGameRepository, {
     GameRepository
-} from './in-memory-game-repository';
-import Game from './game';
+} from '@/game/in-memory-game-repository';
+import Game from '@/game/game';
+import GameService from '@/game/game-service';
 
 describe('game-service', () => {
     let gameRepository: GameRepository;
@@ -9,7 +10,7 @@ describe('game-service', () => {
 
     beforeEach(() => {
         gameRepository = new InMemoryGameRepository();
-        gameService = new gameService(
+        gameService = new GameService(
             gameRepository,
             (...args: ConstructorParameters<typeof Game>) => new Game(...args)
         );
@@ -19,7 +20,7 @@ describe('game-service', () => {
             describe('and a game constructor', () => {
                 it('creates a game service', () => {
                     const gameRepository = new InMemoryGameRepository();
-                    const gameService = new gameService(
+                    const gameService = new GameService(
                         gameRepository,
                         (...args: ConstructorParameters<typeof Game>) =>
                             new Game(...args)

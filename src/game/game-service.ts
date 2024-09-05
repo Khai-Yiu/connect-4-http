@@ -1,9 +1,15 @@
-import { GameRepository } from "./in-memory-game-repository";
+import { GameFactory } from '@/game/game-types';
+import { GameRepository } from '@/game/in-memory-game-repository';
 
 export interface GameServiceInterface {}
+export class NoSuchGameError extends Error {}
 
 export default class GameService implements GameServiceInterface {
-    constructor(repository: GameRepository, gameFactory: (...args: ConstructorParameters<typeof Game>) => Game) {
-        
-    }) {}
+    repository: GameRepository;
+    gameFactory: GameFactory;
+
+    constructor(repository: GameRepository, gameFactory: GameFactory) {
+        this.repository = repository;
+        this.gameFactory = gameFactory;
+    }
 }
