@@ -39,4 +39,30 @@ describe('in-memory-game-repository', () => {
             });
         });
     });
+    describe('loading a game', () => {
+        describe('when given an id of a game', () => {
+            it('loads the game', async () => {
+                const gameDetails = {
+                    activePlayer: 1,
+                    players: {
+                        1: {
+                            playerNumber: 1,
+                            remainingDiscs: 2
+                        },
+                        2: {
+                            playerNumber: 2,
+                            remainingDiscs: 2
+                        }
+                    },
+                    gameStatus: GameStatus.IN_PROGRESS
+                } as GameDetails;
+                const { uuid } = await gameRepository.saveGame(gameDetails);
+                const loadedGame = await gameRepository.loadGame(uuid);
+                expect(loadedGame).toEqual({
+                    uuid: expect.toBeUuid(),
+                    ...gameDetails
+                });
+            });
+        });
+    });
 });
