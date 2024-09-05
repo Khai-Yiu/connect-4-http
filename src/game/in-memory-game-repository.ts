@@ -3,6 +3,7 @@ import { GameDetails, PersistedGameDetails } from './game-service.d';
 
 export interface GameRepository {
     saveGame: (gameDetails: GameDetails) => Promise<PersistedGameDetails>;
+    loadGame: (gameUuid: Uuid) => Promise<PersistedGameDetails>;
 }
 
 export default class InMemoryGameRepository implements GameRepository {
@@ -21,5 +22,11 @@ export default class InMemoryGameRepository implements GameRepository {
         this.games.set(uuid, persistedGameDetails);
 
         return persistedGameDetails;
+    }
+
+    async loadGame(gameUuid: Uuid) {
+        const game = this.games.get(gameUuid);
+
+        return game;
     }
 }
