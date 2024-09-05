@@ -5,8 +5,10 @@ import {
 } from '@/session/in-memory-session-repository.d';
 
 export interface SessionRepository {
-    create: (sessionCreationDetails: SessionCreationDetails) => SessionDetails;
-    getSession: (sessionUuid: Uuid) => SessionDetails;
+    create: (
+        sessionCreationDetails: SessionCreationDetails
+    ) => Promise<SessionDetails>;
+    getSession: (sessionUuid: Uuid) => Promise<SessionDetails>;
 }
 
 export default class InMemorySessionRepository {
@@ -16,7 +18,7 @@ export default class InMemorySessionRepository {
         this.sessions = new Map();
     }
 
-    create({ inviterUuid, inviteeUuid }: SessionCreationDetails) {
+    async create({ inviterUuid, inviteeUuid }: SessionCreationDetails) {
         const sessionUuid = crypto.randomUUID();
         const sessionDetails = {
             uuid: sessionUuid,
@@ -32,7 +34,7 @@ export default class InMemorySessionRepository {
         return sessionDetails;
     }
 
-    getSession(sessionUuid: Uuid) {
+    async getSession(sessionUuid: Uuid) {
         return this.sessions.get(sessionUuid);
     }
 }

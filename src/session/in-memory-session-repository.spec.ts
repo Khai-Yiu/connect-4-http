@@ -8,13 +8,13 @@ describe('in-memory-session-repository', () => {
     });
 
     describe('given details about a session', () => {
-        it('creates the session', () => {
+        it('creates the session', async () => {
             const sessionCreationDetails = {
                 inviterUuid: '010f712b-7b31-420b-bd40-f23584fac148',
                 inviteeUuid: 'd36e91c5-5c0d-481d-b929-5dab0267257a'
             };
 
-            const createdSession = inMemorySessionRepository.create(
+            const createdSession = await inMemorySessionRepository.create(
                 sessionCreationDetails
             );
             expect(createdSession).toEqual(
@@ -32,16 +32,17 @@ describe('in-memory-session-repository', () => {
     });
     describe('given a session has been created', () => {
         describe('when provided with the session ID', () => {
-            it('returns the session', () => {
+            it('returns the session', async () => {
                 const sessionCreationDetails = {
                     inviterUuid: '010f712b-7b31-420b-bd40-f23584fac148',
                     inviteeUuid: 'd36e91c5-5c0d-481d-b929-5dab0267257a'
                 };
-                const { uuid } = inMemorySessionRepository.create(
+                const { uuid } = await inMemorySessionRepository.create(
                     sessionCreationDetails
                 );
                 const retrievedSession =
-                    inMemorySessionRepository.getSession(uuid);
+                    await inMemorySessionRepository.getSession(uuid);
+
                 expect(retrievedSession).toEqual(
                     expect.objectContaining({
                         uuid: expect.toBeUuid(),

@@ -1,11 +1,19 @@
-import InMemorySessionRepository from './in-memory-session-repository';
+import InMemorySessionRepository, {
+    SessionRepository
+} from './in-memory-session-repository';
+import SessionService from './session-service';
 
 describe('session-service', () => {
+    let sessionRepository: SessionRepository;
+    let sessionService: SessionService;
+
+    beforeEach(() => {
+        sessionRepository = new InMemorySessionRepository();
+        sessionService = new SessionService(sessionRepository);
+    });
     describe('creating a session service', () => {
         describe('given a session repository', () => {
             it('creates a session service', () => {
-                const sessionRepository = new InMemorySessionRepository();
-                const sessionService = new SessionService(sessionRepository);
                 expect(sessionService).toBeInstanceOf(SessionService);
             });
         });
