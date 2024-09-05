@@ -5,7 +5,7 @@ export type SessionCreationDetails = {
     inviteeUuid: Uuid;
 };
 
-export type SessionPersistedDetails = {
+export type SessionDetails = {
     uuid: Uuid;
     inviter: {
         uuid: Uuid;

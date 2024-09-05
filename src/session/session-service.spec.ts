@@ -20,8 +20,8 @@ describe('session-service', () => {
     });
     describe('creating a session', () => {
         describe('given the identities of two players', () => {
-            it('creates a session', () => {
-                const sessionDetails = sessionService.createSession({
+            it('creates a session', async () => {
+                const sessionDetails = await sessionService.createSession({
                     inviterUuid: 'ac698d60-5f6e-4d89-be27-f12c9b054d22',
                     inviteeUuid: 'd5bcfb7a-b8a8-4274-afef-c5db4509813a'
                 });
@@ -29,10 +29,10 @@ describe('session-service', () => {
                 expect(sessionDetails).toEqual(
                     expect.objectContaining({
                         uuid: expect.toBeUuid(),
-                        inviterUuid: expect.objectContaining({
+                        inviter: expect.objectContaining({
                             uuid: 'ac698d60-5f6e-4d89-be27-f12c9b054d22'
                         }),
-                        inviteeUuid: expect.objectContaining({
+                        invitee: expect.objectContaining({
                             uuid: 'd5bcfb7a-b8a8-4274-afef-c5db4509813a'
                         })
                     })
