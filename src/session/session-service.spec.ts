@@ -66,7 +66,7 @@ describe('session-service', () => {
             });
         });
         describe('when provided with the id of a non-existent session', () => {
-            it.skip('throws a "NoSuchSessionError"', () => {
+            it('throws a "NoSuchSessionError"', () => {
                 const sessionUuid = 'b8633095-70cc-4b93-b2ef-e6a55a4341a9';
                 expect(
                     async () => await sessionService.getSession(sessionUuid)
