@@ -6,6 +6,8 @@ export interface GameRepository {
     loadGame: (gameUuid: Uuid) => Promise<PersistedGameDetails>;
 }
 
+export class NoSuchGameError extends Error {}
+
 export default class InMemoryGameRepository implements GameRepository {
     games: Map<Uuid, PersistedGameDetails>;
 
@@ -26,6 +28,10 @@ export default class InMemoryGameRepository implements GameRepository {
 
     async loadGame(gameUuid: Uuid) {
         const game = this.games.get(gameUuid);
+
+        if (game === undefined) {
+            throw new NoSuchGameError();
+        }
 
         return game;
     }
