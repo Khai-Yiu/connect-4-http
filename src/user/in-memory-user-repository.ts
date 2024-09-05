@@ -1,14 +1,9 @@
 import { CreateUserDetails } from '@/user/user-service.d';
-import { UserRepository } from '@/user/in-memory-user-repository.d';
+import {
+    PersistedUser,
+    UserRepository
+} from '@/user/in-memory-user-repository.d';
 import { Uuid } from '@/global';
-
-export type PersistedUser = {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    uuid: Uuid;
-};
 
 export default class InMemoryUserRepositoryFactory implements UserRepository {
     private users: Map<Uuid, PersistedUser>;

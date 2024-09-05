@@ -1,5 +1,13 @@
-import { PersistedUser } from '@/user/in-memory-user-repository';
+import { Uuid } from '@/global';
 import { CreateUserDetails } from '@/user/user-service.d';
+
+export type PersistedUser = {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    uuid: Uuid;
+};
 
 export interface UserRepository {
     create: (userDetails: CreateUserDetails) => Promise<PersistedUser>;

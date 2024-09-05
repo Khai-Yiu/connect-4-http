@@ -1,4 +1,3 @@
-import { expect } from '@jest/globals';
 import { MatcherFunction, MatcherContext } from 'expect';
 
 const UUID_REGEX =

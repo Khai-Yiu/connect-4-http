@@ -1,7 +1,7 @@
 import InMemorySessionRepository, {
     SessionRepository
-} from './in-memory-session-repository';
-import SessionService, { NoSuchSessionError } from './session-service';
+} from '@/session/in-memory-session-repository';
+import SessionService, { NoSuchSessionError } from '@/session/session-service';
 
 describe('session-service', () => {
     let sessionRepository: SessionRepository;
