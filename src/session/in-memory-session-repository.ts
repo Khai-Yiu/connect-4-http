@@ -1,7 +1,7 @@
 import { Uuid } from '@/global';
 import {
     SessionCreationDetails,
-    SessionPersistedDetails as SessionDetails
+    SessionDetails
 } from '@/session/in-memory-session-repository.d';
 
 export interface SessionRepository {

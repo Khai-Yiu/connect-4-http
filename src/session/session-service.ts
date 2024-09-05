@@ -9,6 +9,7 @@ export interface SessionServiceInterface {
     getSession: (sessionUuid: Uuid) => Promise<SessionDetails>;
 }
 
+export class NoSuchSessionError extends Error {}
 export default class SessionService {
     repository: SessionRepository;
 
@@ -16,11 +17,17 @@ export default class SessionService {
         this.repository = repository;
     }
 
-    createSession(sessionCreationDetails: SessionCreationDetails) {
-        return this.repository.create(sessionCreationDetails);
+    async createSession(sessionCreationDetails: SessionCreationDetails) {
+        return await this.repository.create(sessionCreationDetails);
     }
 
-    getSession(sessionUuid: Uuid) {
-        return this.repository.getSession(sessionUuid);
+    async getSession(sessionUuid: Uuid) {
+        const sessionDetails = await this.repository.getSession(sessionUuid);
+
+        if (sessionDetails === undefined) {
+            throw new NoSuchSessionError();
+        }
+
+        return sessionDetails;
     }
 }
