@@ -1,4 +1,4 @@
-import { GameDetails, GameStatus } from './game-service.d';
+import { GameDetails, GameStatus } from './game-types';
 import InMemoryGameRepository, {
     NoSuchGameError
 } from './in-memory-game-repository';

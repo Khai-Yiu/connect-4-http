@@ -1,5 +1,5 @@
 import { Uuid } from '@/global';
-import { GameDetails, PersistedGameDetails } from './game-service.d';
+import { GameDetails, PersistedGameDetails } from './game-types.d';
 
 export interface GameRepository {
     saveGame: (gameDetails: GameDetails) => Promise<PersistedGameDetails>;
