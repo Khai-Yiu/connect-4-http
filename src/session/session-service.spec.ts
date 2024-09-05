@@ -48,8 +48,10 @@ describe('session-service', () => {
                         inviterUuid: 'ac698d60-5f6e-4d89-be27-f12c9b054d22',
                         inviteeUuid: 'd5bcfb7a-b8a8-4274-afef-c5db4509813a'
                     });
+                    const retrievedSession =
+                        await sessionService.getSession(uuid);
 
-                    expect(sessionService.getSession(uuid)).toEqual(
+                    expect(retrievedSession).toEqual(
                         expect.objectContaining({
                             uuid: expect.toBeUuid(),
                             inviter: expect.objectContaining({
@@ -61,6 +63,14 @@ describe('session-service', () => {
                         })
                     );
                 });
+            });
+        });
+        describe('when provided with the id of a non-existent session', () => {
+            it.skip('throws a "NoSuchSessionError"', () => {
+                const sessionUuid = 'b8633095-70cc-4b93-b2ef-e6a55a4341a9';
+                expect(
+                    async () => await sessionService.getSession(sessionUuid)
+                ).toThrow(new NoSuchSessionError());
             });
         });
     });
