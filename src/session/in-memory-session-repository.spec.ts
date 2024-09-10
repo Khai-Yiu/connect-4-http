@@ -25,7 +25,8 @@ describe('in-memory-session-repository', () => {
                     }),
                     invitee: expect.objectContaining({
                         uuid: 'd36e91c5-5c0d-481d-b929-5dab0267257a'
-                    })
+                    }),
+                    status: 'IN_PROGRESS'
                 })
             );
         });
@@ -51,7 +52,8 @@ describe('in-memory-session-repository', () => {
                         }),
                         invitee: expect.objectContaining({
                             uuid: 'd36e91c5-5c0d-481d-b929-5dab0267257a'
-                        })
+                        }),
+                        status: 'IN_PROGRESS'
                     })
                 );
             });

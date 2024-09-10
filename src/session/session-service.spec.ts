@@ -34,7 +34,8 @@ describe('session-service', () => {
                         }),
                         invitee: expect.objectContaining({
                             uuid: 'd5bcfb7a-b8a8-4274-afef-c5db4509813a'
-                        })
+                        }),
+                        status: 'IN_PROGRESS'
                     })
                 );
             });
@@ -48,8 +49,9 @@ describe('session-service', () => {
                         inviterUuid: 'ac698d60-5f6e-4d89-be27-f12c9b054d22',
                         inviteeUuid: 'd5bcfb7a-b8a8-4274-afef-c5db4509813a'
                     });
-                    const retrievedSession =
-                        await sessionService.getSession(uuid);
+                    const retrievedSession = await sessionService.getSession(
+                        uuid
+                    );
 
                     expect(retrievedSession).toEqual(
                         expect.objectContaining({
@@ -59,7 +61,8 @@ describe('session-service', () => {
                             }),
                             invitee: expect.objectContaining({
                                 uuid: 'd5bcfb7a-b8a8-4274-afef-c5db4509813a'
-                            })
+                            }),
+                            status: 'IN_PROGRESS'
                         })
                     );
                 });
@@ -71,6 +74,34 @@ describe('session-service', () => {
                 expect(() =>
                     sessionService.getSession(sessionUuid)
                 ).rejects.toThrow(new NoSuchSessionError());
+            });
+        });
+    });
+    describe('adding games', () => {
+        describe('given an in-progress session', () => {
+            describe('with no games', () => {
+                it('adds a new game to the session', async () => {
+                    const { uuid } = await sessionService.createSession({
+                        inviterUuid: '34299162-58de-4e8a-9be3-19fded384c4e',
+                        inviteeUuid: '0d559433-a243-489f-a08e-898460324ae6'
+                    });
+                    expect(sessionService.getGameUuids(uuid)).resolves.toEqual(
+                        []
+                    );
+                    expect(
+                        sessionService.getActiveGameUuid(uuid)
+                    ).resolves.toBeUndefined();
+
+                    await sessionService.addNewGame(uuid);
+                    const activeGameUuid = await sessionService.getActiveGameId(
+                        uuid
+                    );
+
+                    expect(activeGameUuid).toBeUuid();
+                    expect(sessionService.getGameUuids(uuid)).resolves.toEqual([
+                        activeGameUuid
+                    ]);
+                });
             });
         });
     });

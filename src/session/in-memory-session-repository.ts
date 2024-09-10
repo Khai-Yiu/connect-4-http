@@ -1,7 +1,8 @@
 import { Uuid } from '@/global';
 import {
     SessionCreationDetails,
-    SessionDetails
+    SessionDetails,
+    SessionStatus
 } from '@/session/in-memory-session-repository.d';
 
 export interface SessionRepository {
@@ -27,7 +28,8 @@ export default class InMemorySessionRepository {
             },
             invitee: {
                 uuid: inviteeUuid
-            }
+            },
+            status: SessionStatus.IN_PROGRESS
         };
         this.sessions.set(sessionUuid, sessionDetails);
 
