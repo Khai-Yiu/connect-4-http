@@ -1,3 +1,4 @@
+import GameService from '@/game/game-service';
 import InMemorySessionRepository, {
     SessionRepository
 } from '@/session/in-memory-session-repository';
@@ -6,10 +7,11 @@ import SessionService, { NoSuchSessionError } from '@/session/session-service';
 describe('session-service', () => {
     let sessionRepository: SessionRepository;
     let sessionService: SessionService;
+    let gameService: GameService;
 
     beforeEach(() => {
         sessionRepository = new InMemorySessionRepository();
-        sessionService = new SessionService(sessionRepository);
+        sessionService = new SessionService(sessionRepository, gameService);
     });
     describe('creating a session service', () => {
         describe('given a session repository', () => {
@@ -93,9 +95,8 @@ describe('session-service', () => {
                     ).resolves.toBeUndefined();
 
                     await sessionService.addNewGame(uuid);
-                    const activeGameUuid = await sessionService.getActiveGameId(
-                        uuid
-                    );
+                    const activeGameUuid =
+                        await sessionService.getActiveGameUuid(uuid);
 
                     expect(activeGameUuid).toBeUuid();
                     expect(sessionService.getGameUuids(uuid)).resolves.toEqual([

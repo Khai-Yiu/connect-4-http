@@ -44,12 +44,12 @@ export default class SessionService {
 
     async getActiveGameUuid(sessionUuid: Uuid) {
         const sessionDetails = await this.getSession(sessionUuid);
-        return sessionDetails.getActiveGameUuid;
+        return sessionDetails.activeGameUuid;
     }
 
     async addNewGame(sessionUuid: Uuid) {
         const newGameUuid = await this.gameService.createGame();
-        await this.repository.addNewGame(sessionUuid, newGameUuid);
+        await this.repository.addGame(sessionUuid, newGameUuid);
         await this.repository.setActiveGame(sessionUuid, newGameUuid);
 
         return newGameUuid;
