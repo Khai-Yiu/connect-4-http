@@ -11,6 +11,10 @@ export interface SessionRepository {
     ) => Promise<SessionDetails>;
     getSession: (sessionUuid: Uuid) => Promise<SessionDetails>;
     addGame: (sessionUuid: Uuid, gameUuid: Uuid) => Promise<SessionDetails>;
+    setActiveGame: (
+        sessionUuid: Uuid,
+        gameUuid: Uuid
+    ) => Promise<SessionDetails>;
 }
 
 export default class InMemorySessionRepository {
@@ -45,6 +49,13 @@ export default class InMemorySessionRepository {
     async addGame(sessionUuid: Uuid, gameUuid: Uuid) {
         const sessionDetails = await this.getSession(sessionUuid);
         sessionDetails.gameUuids.push(gameUuid);
+
+        return sessionDetails;
+    }
+
+    async setActiveGame(sessionUuid: Uuid, gameUuid: Uuid) {
+        const sessionDetails = await this.getSession(sessionUuid);
+        sessionDetails.activeGameUuid = gameUuid;
 
         return sessionDetails;
     }
