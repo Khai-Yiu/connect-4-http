@@ -26,8 +26,9 @@ export enum GameStatus {
 export type Board = Array<Array<BoardCell>>;
 export type GameDetails = {
     board: Board;
+    boardDimensions: BoardDimensions;
     activePlayer: PlayerNumber;
-    players: Record<PlayerNumber, PlayerStats>;
+    playerStats: Record<PlayerNumber, PlayerStats>;
     gameStatus: GameStatus;
 };
 

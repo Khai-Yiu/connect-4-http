@@ -3,8 +3,12 @@ import Game from '@/game/game';
 
 const createDefaultGameDetails = () => ({
     board: new Array(6).fill(undefined).map(() => new Array(7)),
+    boardDimensions: {
+        rows: 6,
+        columns: 7
+    },
     activePlayer: 1,
-    players: {
+    playerStats: {
         1: {
             playerNumber: 1,
             remainingDiscs: 21
@@ -14,7 +18,7 @@ const createDefaultGameDetails = () => ({
             remainingDiscs: 21
         }
     },
-    status: 'IN_PROGRESS'
+    gameStatus: 'IN_PROGRESS'
 });
 
 describe('game', () => {
@@ -50,9 +54,7 @@ describe('game', () => {
     describe('retrieving game details', () => {
         it('returns the game details', () => {
             const game = new Game();
-            expect(game.getDetails).resolves.toEqual(
-                createDefaultGameDetails()
-            );
+            expect(game.getDetails()).toEqual(createDefaultGameDetails());
         });
     });
 });

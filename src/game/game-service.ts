@@ -4,7 +4,7 @@ import { Uuid } from '@/global';
 
 export interface GameServiceInterface {
     createGame: () => Promise<Uuid>;
-    getGameDetails: (gameUuid: Uuid) => GameDetails;
+    getGameDetails: (gameUuid: Uuid) => Promise<GameDetails>;
 }
 export class NoSuchGameError extends Error {}
 
@@ -22,5 +22,9 @@ export default class GameService implements GameServiceInterface {
         const { uuid } = await this.repository.saveGame(game.getDetails());
 
         return uuid;
+    }
+
+    async getGameDetails(gameUuid: Uuid) {
+        return await this.repository.loadGame(gameUuid);
     }
 }

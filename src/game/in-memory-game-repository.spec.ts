@@ -20,7 +20,7 @@ describe('in-memory-game-repository', () => {
             it('saves the game', async () => {
                 const gameDetails = {
                     activePlayer: 1,
-                    players: {
+                    playerStats: {
                         1: {
                             playerNumber: 1,
                             remainingDiscs: 2
@@ -32,8 +32,9 @@ describe('in-memory-game-repository', () => {
                     },
                     gameStatus: GameStatus.IN_PROGRESS
                 } as GameDetails;
-                const savedGameDetails =
-                    await gameRepository.saveGame(gameDetails);
+                const savedGameDetails = await gameRepository.saveGame(
+                    gameDetails
+                );
                 expect(savedGameDetails).toEqual({
                     uuid: expect.toBeUuid(),
                     ...gameDetails
@@ -47,7 +48,7 @@ describe('in-memory-game-repository', () => {
                 it('returns the details of the game', async () => {
                     const gameDetails = {
                         activePlayer: 1,
-                        players: {
+                        playerStats: {
                             1: {
                                 playerNumber: 1,
                                 remainingDiscs: 2
