@@ -59,4 +59,22 @@ describe('in-memory-session-repository', () => {
             });
         });
     });
+    describe('updating session details', () => {
+        describe('given the uuid of an existing session', () => {
+            describe('and the uuid of a game to add to the session', () => {
+                it('adds the game to the session details', async () => {
+                    const gameUuid = 'c944743d-3f06-4ee6-a697-669e3cb02655';
+                    const { uuid } = await inMemorySessionRepository.create({
+                        inviterUuid: '0dbb264d-3979-483a-a579-e849d79e9c85',
+                        inviteeUuid: '02ca8ef5-716d-4421-92e4-ff94682d0b33'
+                    });
+                    await inMemorySessionRepository.addGame(uuid, gameUuid);
+                    const sessionDetails =
+                        await inMemorySessionRepository.getSession(uuid);
+
+                    expect(sessionDetails.gameUuids).toEqual([gameUuid]);
+                });
+            });
+        });
+    });
 });

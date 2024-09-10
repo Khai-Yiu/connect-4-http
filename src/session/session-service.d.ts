@@ -1,4 +1,5 @@
 import { Uuid } from '@/global.d';
+import { SessionStatus } from './in-memory-session-repository.d';
 
 export type SessionCreationDetails = {
     inviterUuid: Uuid;
@@ -13,4 +14,7 @@ export type SessionDetails = {
     invitee: {
         uuid: Uuid;
     };
+    status: SessionStatus;
+    gameUuids: Array<Uuid>;
+    activeGameUuid: Uuid;
 };
