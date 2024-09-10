@@ -1,4 +1,6 @@
+import Game from '@/game/game';
 import GameService from '@/game/game-service';
+import InMemoryGameRepository from '@/game/in-memory-game-repository';
 import InMemorySessionRepository, {
     SessionRepository
 } from '@/session/in-memory-session-repository';
@@ -11,6 +13,10 @@ describe('session-service', () => {
 
     beforeEach(() => {
         sessionRepository = new InMemorySessionRepository();
+        gameService = new GameService(
+            new InMemoryGameRepository(),
+            (...args: ConstructorParameters<typeof Game>) => new Game(...args)
+        );
         sessionService = new SessionService(sessionRepository, gameService);
     });
     describe('creating a session service', () => {
