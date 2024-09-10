@@ -17,4 +17,6 @@ export type SessionDetails = {
     invitee: {
         uuid: Uuid;
     };
+    gameUuids: Array<Uuid>;
+    activeGameUuid?: Uuid;
 };

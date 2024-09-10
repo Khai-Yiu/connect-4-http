@@ -10,6 +10,7 @@ export interface SessionRepository {
         sessionCreationDetails: SessionCreationDetails
     ) => Promise<SessionDetails>;
     getSession: (sessionUuid: Uuid) => Promise<SessionDetails>;
+    addGame: (sessionUuid: Uuid, gameUuid: Uuid) => Promise<SessionDetails>;
 }
 
 export default class InMemorySessionRepository {
@@ -29,7 +30,8 @@ export default class InMemorySessionRepository {
             invitee: {
                 uuid: inviteeUuid
             },
-            status: SessionStatus.IN_PROGRESS
+            status: SessionStatus.IN_PROGRESS,
+            gameUuids: []
         };
         this.sessions.set(sessionUuid, sessionDetails);
 
@@ -38,5 +40,12 @@ export default class InMemorySessionRepository {
 
     async getSession(sessionUuid: Uuid) {
         return this.sessions.get(sessionUuid);
+    }
+
+    async addGame(sessionUuid: Uuid, gameUuid: Uuid) {
+        const sessionDetails = await this.getSession(sessionUuid);
+        sessionDetails.gameUuids.push(gameUuid);
+
+        return sessionDetails;
     }
 }
