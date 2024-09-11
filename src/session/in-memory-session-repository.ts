@@ -59,4 +59,11 @@ export default class InMemorySessionRepository {
 
         return sessionDetails;
     }
+
+    async unsetActiveGame(sessionUuid: Uuid) {
+        const sessionDetails = await this.getSession(sessionUuid);
+        sessionDetails.activeGameUuid = undefined;
+
+        return sessionDetails;
+    }
 }

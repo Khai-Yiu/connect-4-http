@@ -11,6 +11,7 @@ export interface SessionServiceInterface {
     getGameUuids: (sessionUuid: Uuid) => Promise<Array<Uuid>>;
     getActiveGameUuid: (sessionUuid: Uuid) => Promise<Uuid>;
     addNewGame: (sessionUuid: Uuid) => Promise<Uuid>;
+    completeActiveGame: (sessionUuid: Uuid) => Promise<Uuid>;
 }
 
 export class NoSuchSessionError extends Error {}
@@ -53,5 +54,13 @@ export default class SessionService {
         await this.repository.setActiveGame(sessionUuid, newGameUuid);
 
         return newGameUuid;
+    }
+
+    async completeActiveGame(sessionUuid: Uuid) {
+        const completeGameUuid = (await this.repository.getSession(sessionUuid))
+            .uuid;
+        this.repository.unsetActiveGame(sessionUuid);
+
+        return completeGameUuid;
     }
 }
