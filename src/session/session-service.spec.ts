@@ -2,6 +2,7 @@ import Game from '@/game/game';
 import GameService from '@/game/game-service';
 import InMemoryGameRepository from '@/game/in-memory-game-repository';
 import InMemorySessionRepository, {
+    ActiveGameInProgressError,
     SessionRepository
 } from '@/session/in-memory-session-repository';
 import SessionService, { NoSuchSessionError } from '@/session/session-service';
@@ -133,6 +134,20 @@ describe('session-service', () => {
                             firstActiveGameUuid,
                             secondActiveGameUuid
                         ]);
+                    });
+                });
+                describe('and an active game', () => {
+                    it('throws an ActiveGameInProgressError', async () => {
+                        const { uuid } = await sessionService.createSession({
+                            inviterUuid: '34299162-58de-4e8a-9be3-19fded384c4e',
+                            inviteeUuid: '0d559433-a243-489f-a08e-898460324ae6'
+                        });
+
+                        await sessionService.addNewGame(uuid);
+
+                        expect(() =>
+                            sessionService.addNewGame(uuid)
+                        ).rejects.toThrow(new ActiveGameInProgressError());
                     });
                 });
             });
