@@ -19,7 +19,7 @@ export default class InMemoryGameRepository implements GameRepository {
             uuid,
             ...gameDetails
         };
-        this.games.set(uuid, persistedGameDetails);
+        this.games.set(persistedGameDetails.uuid, persistedGameDetails);
 
         return persistedGameDetails;
     }

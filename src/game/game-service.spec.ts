@@ -83,27 +83,62 @@ describe('game-service', () => {
         });
         describe('given the uuid of a game', () => {
             describe('and a valid move', () => {
-                describe('and the service was created with a handler for "player moved" events', () => {
-                    it('calls the handler with details of the move', async () => {
-                        const gameUuid = await gameService.createGame();
-                        const result = await gameService.submitMove(gameUuid, {
-                            player: 1,
-                            position: {
-                                row: 0,
-                                column: 0
-                            }
-                        });
-                        expect(result).toEqual({ moveSuccessful: true });
-                        expect(
-                            mockedPlayerMovedEventHandler
-                        ).toHaveBeenCalledWith({
-                            player: 1,
-                            position: {
-                                row: 0,
-                                column: 0
-                            }
-                        });
+                it('makes the move', async () => {
+                    const gameUuid = await gameService.createGame();
+                    const result = await gameService.submitMove(gameUuid, {
+                        player: 1,
+                        targetCell: {
+                            row: 0,
+                            column: 0
+                        }
                     });
+                    expect(result).toEqual({ moveSuccessful: true });
+                    expect(mockedPlayerMovedEventHandler).toHaveBeenCalledWith({
+                        type: 'PLAYER_MOVED',
+                        payload: {
+                            player: 1,
+                            targetCell: {
+                                row: 0,
+                                column: 0
+                            }
+                        }
+                    });
+                    const board = (await gameService.getGameDetails(gameUuid))
+                        .board;
+                    expect(toAsciiTable(board)).toMatchInlineSnapshot(`
+                        "
+                        |---|--|--|--|--|--|--|
+                        | 1 |  |  |  |  |  |  |
+                        |---|--|--|--|--|--|--|
+                        |   |  |  |  |  |  |  |
+                        |---|--|--|--|--|--|--|
+                        |   |  |  |  |  |  |  |
+                        |---|--|--|--|--|--|--|
+                        |   |  |  |  |  |  |  |
+                        |---|--|--|--|--|--|--|
+                        |   |  |  |  |  |  |  |
+                        |---|--|--|--|--|--|--|
+                        |   |  |  |  |  |  |  |
+                        |---|--|--|--|--|--|--|"
+                    `);
+                });
+            });
+            describe('and an invalid move', () => {
+                it('does not make the move', async () => {
+                    const gameUuid = await gameService.createGame();
+                    const result = await gameService.submitMove(gameUuid, {
+                        player: 1,
+                        targetCell: {
+                            row: -1,
+                            column: 0
+                        }
+                    });
+                    expect(result).toEqual(
+                        expect.objectContaining({ moveSuccessful: false })
+                    );
+                    expect(
+                        mockedPlayerMovedEventHandler
+                    ).not.toHaveBeenCalled();
                 });
             });
         });

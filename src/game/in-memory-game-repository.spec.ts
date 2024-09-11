@@ -40,6 +40,87 @@ describe('in-memory-game-repository', () => {
                     ...gameDetails
                 });
             });
+            describe('and a uuid to save the game', () => {
+                describe('which no other game has been saved under', () => {
+                    it('saves the game', async () => {
+                        const gameUuid = '3507af63-cc71-43ad-93ea-dc06eaef70b2';
+                        const gameDetailsWithUuid = {
+                            uuid: gameUuid,
+                            board: new Array(6).fill(undefined).map(() =>
+                                new Array(7).fill(undefined).map(() => ({
+                                    player: undefined
+                                }))
+                            ),
+                            boardDimensions: {
+                                rows: 6,
+                                columns: 7
+                            },
+                            activePlayer: 1,
+                            playerStats: {
+                                1: {
+                                    playerNumber: 1,
+                                    remainingDiscs: 21
+                                },
+                                2: {
+                                    playerNumber: 2,
+                                    remainingDiscs: 21
+                                }
+                            },
+                            gameStatus: 'IN_PROGRESS'
+                        } as GameDetails;
+
+                        await gameRepository.saveGame(gameDetailsWithUuid);
+                        const retrievedGameDetails =
+                            await gameRepository.loadGame(gameUuid);
+
+                        expect(retrievedGameDetails).toEqual({
+                            ...gameDetailsWithUuid
+                        });
+                    });
+                });
+                describe('which a game has already been saved under', () => {
+                    it('replaces the saved game with the updated game', async () => {
+                        const gameUuid = '3507af63-cc71-43ad-93ea-dc06eaef70b2';
+                        const gameDetailsWithUuid = {
+                            uuid: gameUuid,
+                            board: new Array(6).fill(undefined).map(() =>
+                                new Array(7).fill(undefined).map(() => ({
+                                    player: undefined
+                                }))
+                            ),
+                            boardDimensions: {
+                                rows: 6,
+                                columns: 7
+                            },
+                            activePlayer: 1,
+                            playerStats: {
+                                1: {
+                                    playerNumber: 1,
+                                    remainingDiscs: 21
+                                },
+                                2: {
+                                    playerNumber: 2,
+                                    remainingDiscs: 21
+                                }
+                            },
+                            gameStatus: 'IN_PROGRESS'
+                        } as GameDetails;
+
+                        await gameRepository.saveGame(gameDetailsWithUuid);
+                        await gameRepository.saveGame({
+                            ...gameDetailsWithUuid,
+                            activePlayer: 2
+                        });
+                        const retrievedGameDetails =
+                            await gameRepository.loadGame(gameUuid);
+
+                        expect(retrievedGameDetails).toEqual({
+                            ...gameDetailsWithUuid,
+                            activePlayer: 2
+                        });
+                    });
+                });
+            });
         });
     });
     describe('loading a game', () => {
