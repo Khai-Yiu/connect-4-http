@@ -1,10 +1,10 @@
 import {
     InviteEvents,
-    InviteServiceEventPublisher
+    InviteServiceEventHandler
 } from '@/invite/invite-service.d';
 
 export type ServiceEvent = InviteEvents;
-export type ServiceEventHandler = InviteServiceEventPublisher;
+export type ServiceEventHandler = InviteServiceEventHandler;
 export type ServiceEventHandlers = Record<ServiceEvent, ServiceEventHandler>;
 export type InternalEventPublisher<P, R> = (
     queue: string,

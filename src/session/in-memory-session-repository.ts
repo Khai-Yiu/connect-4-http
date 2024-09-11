@@ -15,7 +15,10 @@ export interface SessionRepository {
         sessionUuid: Uuid,
         gameUuid: Uuid
     ) => Promise<SessionDetails>;
+    unsetActiveGame: (sessionUuid: Uuid) => Promise<SessionDetails>;
 }
+
+export class ActiveGameInProgressError extends Error {}
 
 export default class InMemorySessionRepository {
     sessions: Map<Uuid, SessionDetails>;
@@ -48,6 +51,11 @@ export default class InMemorySessionRepository {
 
     async addGame(sessionUuid: Uuid, gameUuid: Uuid) {
         const sessionDetails = await this.getSession(sessionUuid);
+
+        if (sessionDetails.activeGameUuid !== undefined) {
+            throw new ActiveGameInProgressError();
+        }
+
         sessionDetails.gameUuids.push(gameUuid);
 
         return sessionDetails;

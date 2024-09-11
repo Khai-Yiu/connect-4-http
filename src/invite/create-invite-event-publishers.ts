@@ -1,5 +1,5 @@
 import {
-    InviteServiceEventPublishers,
+    InviteServiceEventHandlers,
     InviteEvents,
     InviteDetails
 } from '@/invite/invite-service.d';
@@ -7,7 +7,7 @@ import { InviteCreatedEvent } from './create-invite-event-listener';
 
 const createInviteEventPublishers = (
     eventPublisher: (eventDetails: InviteCreatedEvent) => Promise<unknown>
-): InviteServiceEventPublishers => {
+): InviteServiceEventHandlers => {
     return {
         [InviteEvents.INVITATION_CREATED]: (inviteDetails: InviteDetails) =>
             eventPublisher({

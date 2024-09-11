@@ -3,7 +3,7 @@ import UserService from '@/user/user-service';
 import InviteService, { InvalidInvitationError } from '@/invite/invite-service';
 import InMemoryInviteRepository from '@/invite/in-memory-invite-repository';
 import {
-    InviteServiceEventPublisher,
+    InviteServiceEventHandler,
     InviteEvents
 } from '@/invite/invite-service.d';
 
@@ -71,7 +71,7 @@ describe('invite-service', () => {
                         new InMemoryInviteRepository(),
                         {
                             [InviteEvents.INVITATION_CREATED]:
-                                mockedInvitationCreationCallback as InviteServiceEventPublisher
+                                mockedInvitationCreationCallback as InviteServiceEventHandler
                         }
                     );
 
@@ -150,10 +150,9 @@ describe('invite-service', () => {
                             inviter: 'player2@gmail.com',
                             invitee: 'player1@gmail.com'
                         });
-                        const invites =
-                            await inviteService.getReceivedInvites(
-                                'player2@gmail.com'
-                            );
+                        const invites = await inviteService.getReceivedInvites(
+                            'player2@gmail.com'
+                        );
                         expect(invites).toEqual([
                             {
                                 ...receivedInviteDetails
