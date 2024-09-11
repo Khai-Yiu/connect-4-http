@@ -110,6 +110,32 @@ describe('session-service', () => {
                     ]);
                 });
             });
+            describe('with previous games', () => {
+                describe('no active games', () => {
+                    it('adds a new game to the session', async () => {
+                        const { uuid } = await sessionService.createSession({
+                            inviterUuid: '34299162-58de-4e8a-9be3-19fded384c4e',
+                            inviteeUuid: '0d559433-a243-489f-a08e-898460324ae6'
+                        });
+
+                        const firstActiveGameUuid =
+                            await sessionService.addNewGame(uuid);
+                        await sessionService.completeActiveGame(uuid);
+                        const secondActiveGameUuid =
+                            await sessionService.addNewGame(uuid);
+
+                        expect(firstActiveGameUuid).not.toBe(
+                            secondActiveGameUuid
+                        );
+                        expect(
+                            sessionService.getGameUuids(uuid)
+                        ).resolves.toEqual([
+                            firstActiveGameUuid,
+                            secondActiveGameUuid
+                        ]);
+                    });
+                });
+            });
         });
     });
 });
