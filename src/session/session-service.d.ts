@@ -1,9 +1,20 @@
 import { Uuid } from '@/global.d';
-import { SessionStatus } from './in-memory-session-repository.d';
+import { SessionStatus } from '@/session/in-memory-session-repository.d';
+
+export type MoveDetails = {
+    row: number;
+    column: number;
+};
 
 export type SessionCreationDetails = {
     inviterUuid: Uuid;
     inviteeUuid: Uuid;
+};
+
+export type GameMetadata = {
+    gameUuid: Uuid;
+    playerOneUuid: Uuid;
+    playerTwoUuid: Uuid;
 };
 
 export type SessionDetails = {
@@ -15,6 +26,6 @@ export type SessionDetails = {
         uuid: Uuid;
     };
     status: SessionStatus;
-    gameUuids: Array<Uuid>;
+    games: Map<Uuid, GameMetadata>;
     activeGameUuid: Uuid;
 };

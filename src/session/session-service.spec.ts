@@ -20,6 +20,7 @@ describe('session-service', () => {
         );
         sessionService = new SessionService(sessionRepository, gameService);
     });
+
     describe('creating a session service', () => {
         describe('given a session repository', () => {
             it('creates a session service', () => {
@@ -101,7 +102,10 @@ describe('session-service', () => {
                         sessionService.getActiveGameUuid(uuid)
                     ).resolves.toBeUndefined();
 
-                    await sessionService.addNewGame(uuid);
+                    await sessionService.addNewGame(
+                        uuid,
+                        '34299162-58de-4e8a-9be3-19fded384c4e'
+                    );
                     const activeGameUuid =
                         await sessionService.getActiveGameUuid(uuid);
 
@@ -109,6 +113,9 @@ describe('session-service', () => {
                     expect(sessionService.getGameUuids(uuid)).resolves.toEqual([
                         activeGameUuid
                     ]);
+                    expect(sessionService.getActivePlayer(uuid)).resolves.toBe(
+                        '34299162-58de-4e8a-9be3-19fded384c4e'
+                    );
                 });
             });
             describe('with previous games', () => {
@@ -120,10 +127,16 @@ describe('session-service', () => {
                         });
 
                         const firstActiveGameUuid =
-                            await sessionService.addNewGame(uuid);
+                            await sessionService.addNewGame(
+                                uuid,
+                                '34299162-58de-4e8a-9be3-19fded384c4e'
+                            );
                         await sessionService.completeActiveGame(uuid);
                         const secondActiveGameUuid =
-                            await sessionService.addNewGame(uuid);
+                            await sessionService.addNewGame(
+                                uuid,
+                                '34299162-58de-4e8a-9be3-19fded384c4e'
+                            );
 
                         expect(firstActiveGameUuid).not.toBe(
                             secondActiveGameUuid
@@ -134,6 +147,9 @@ describe('session-service', () => {
                             firstActiveGameUuid,
                             secondActiveGameUuid
                         ]);
+                        expect(
+                            sessionService.getActivePlayer(uuid)
+                        ).resolves.toBe('34299162-58de-4e8a-9be3-19fded384c4e');
                     });
                 });
                 describe('and an active game', () => {
@@ -143,11 +159,20 @@ describe('session-service', () => {
                             inviteeUuid: '0d559433-a243-489f-a08e-898460324ae6'
                         });
 
-                        await sessionService.addNewGame(uuid);
+                        await sessionService.addNewGame(
+                            uuid,
+                            '34299162-58de-4e8a-9be3-19fded384c4e'
+                        );
 
                         expect(() =>
-                            sessionService.addNewGame(uuid)
+                            sessionService.addNewGame(
+                                uuid,
+                                '34299162-58de-4e8a-9be3-19fded384c4e'
+                            )
                         ).rejects.toThrow(new ActiveGameInProgressError());
+                        expect(
+                            sessionService.getActivePlayer(uuid)
+                        ).resolves.toBe('34299162-58de-4e8a-9be3-19fded384c4e');
                     });
                 });
             });
@@ -164,21 +189,23 @@ describe('session-service', () => {
                         });
 
                         await sessionService.addNewGame(
-                            '6f1e40f3-0a16-4bbf-847a-cd0ef2c02093'
+                            uuid,
+                            '5b9ba64a-8abb-4719-a7ec-34a44b245842'
                         );
 
                         const moveResult = await sessionService.submitMove(
                             uuid,
+                            '5b9ba64a-8abb-4719-a7ec-34a44b245842',
                             {
-                                player: 1,
-                                targetCell: {
-                                    row: 0,
-                                    column: 0
-                                }
+                                row: 0,
+                                column: 0
                             }
                         );
 
                         expect(moveResult).toEqual({ moveSuccessful: true });
+                        expect(
+                            sessionService.getActivePlayer(uuid)
+                        ).resolves.toBe('03fece2e-3db7-496d-ad2d-d5d8174e537e');
                     });
                 });
             });

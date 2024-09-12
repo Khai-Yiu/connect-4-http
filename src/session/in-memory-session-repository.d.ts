@@ -4,6 +4,12 @@ export enum SessionStatus {
     IN_PROGRESS = 'IN_PROGRESS'
 }
 
+export type GameMetadata = {
+    gameUuid: Uuid;
+    playerOneUuid: Uuid;
+    playerTwoUuid: Uuid;
+};
+
 export type SessionCreationDetails = {
     inviterUuid: Uuid;
     inviteeUuid: Uuid;
@@ -17,6 +23,6 @@ export type SessionDetails = {
     invitee: {
         uuid: Uuid;
     };
-    gameUuids: Array<Uuid>;
+    games: Map<Uuid, GameMetadata>;
     activeGameUuid?: Uuid;
 };

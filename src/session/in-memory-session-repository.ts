@@ -10,7 +10,11 @@ export interface SessionRepository {
         sessionCreationDetails: SessionCreationDetails
     ) => Promise<SessionDetails>;
     getSession: (sessionUuid: Uuid) => Promise<SessionDetails>;
-    addGame: (sessionUuid: Uuid, gameUuid: Uuid) => Promise<SessionDetails>;
+    addGame: (
+        sessionUuid: Uuid,
+        gameUuid: Uuid,
+        startingPlayerUuid: Uuid
+    ) => Promise<SessionDetails>;
     setActiveGame: (
         sessionUuid: Uuid,
         gameUuid: Uuid
@@ -38,8 +42,9 @@ export default class InMemorySessionRepository {
                 uuid: inviteeUuid
             },
             status: SessionStatus.IN_PROGRESS,
-            gameUuids: []
+            games: new Map()
         };
+
         this.sessions.set(sessionUuid, sessionDetails);
 
         return sessionDetails;
@@ -49,14 +54,18 @@ export default class InMemorySessionRepository {
         return this.sessions.get(sessionUuid);
     }
 
-    async addGame(sessionUuid: Uuid, gameUuid: Uuid) {
+    async addGame(sessionUuid: Uuid, gameUuid: Uuid, startingPlayerUuid: Uuid) {
         const sessionDetails = await this.getSession(sessionUuid);
+        const gameMetadata = {
+            gameUuid,
+            playerOneUuid: startingPlayerUuid,
+            playerTwoUuid:
+                startingPlayerUuid === sessionDetails.inviter.uuid
+                    ? sessionDetails.invitee.uuid
+                    : sessionDetails.inviter.uuid
+        };
 
-        if (sessionDetails.activeGameUuid !== undefined) {
-            throw new ActiveGameInProgressError();
-        }
-
-        sessionDetails.gameUuids.push(gameUuid);
+        sessionDetails.games.set(gameUuid, gameMetadata);
 
         return sessionDetails;
     }
