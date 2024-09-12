@@ -181,7 +181,7 @@ describe('session-service', () => {
     describe('making moves', () => {
         describe('given a session', () => {
             describe('with an active game', () => {
-                describe('and a valid move', () => {
+                describe('and a move that is valid for the active game', () => {
                     it('makes the move on the active game', async () => {
                         const { uuid } = await sessionService.createSession({
                             inviterUuid: '5b9ba64a-8abb-4719-a7ec-34a44b245842',
@@ -202,10 +202,43 @@ describe('session-service', () => {
                             }
                         );
 
-                        expect(moveResult).toEqual({ moveSuccessful: true });
+                        expect(moveResult).toEqual({
+                            moveSuccessful: true
+                        });
                         expect(
                             sessionService.getActivePlayer(uuid)
                         ).resolves.toBe('03fece2e-3db7-496d-ad2d-d5d8174e537e');
+                    });
+                });
+                describe('and a move that is not valid for the active game', () => {
+                    it('does not make the move on the active game', async () => {
+                        const { uuid } = await sessionService.createSession({
+                            inviterUuid: '5b9ba64a-8abb-4719-a7ec-34a44b245842',
+                            inviteeUuid: '03fece2e-3db7-496d-ad2d-d5d8174e537e'
+                        });
+
+                        await sessionService.addNewGame(
+                            uuid,
+                            '5b9ba64a-8abb-4719-a7ec-34a44b245842'
+                        );
+
+                        const moveResult = await sessionService.submitMove(
+                            uuid,
+                            '5b9ba64a-8abb-4719-a7ec-34a44b245842',
+                            {
+                                row: -1,
+                                column: 0
+                            }
+                        );
+
+                        expect(moveResult).toEqual(
+                            expect.objectContaining({
+                                moveSuccessful: false
+                            })
+                        );
+                        expect(
+                            sessionService.getActivePlayer(uuid)
+                        ).resolves.toBe('5b9ba64a-8abb-4719-a7ec-34a44b245842');
                     });
                 });
             });
