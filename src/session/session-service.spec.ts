@@ -153,4 +153,35 @@ describe('session-service', () => {
             });
         });
     });
+    describe('making moves', () => {
+        describe('given a session', () => {
+            describe('with an active game', () => {
+                describe('and a valid move', () => {
+                    it('makes the move on the active game', async () => {
+                        const { uuid } = await sessionService.createSession({
+                            inviterUuid: '5b9ba64a-8abb-4719-a7ec-34a44b245842',
+                            inviteeUuid: '03fece2e-3db7-496d-ad2d-d5d8174e537e'
+                        });
+
+                        await sessionService.addNewGame(
+                            '6f1e40f3-0a16-4bbf-847a-cd0ef2c02093'
+                        );
+
+                        const moveResult = await sessionService.submitMove(
+                            uuid,
+                            {
+                                player: 1,
+                                targetCell: {
+                                    row: 0,
+                                    column: 0
+                                }
+                            }
+                        );
+
+                        expect(moveResult).toEqual({ moveSuccessful: true });
+                    });
+                });
+            });
+        });
+    });
 });

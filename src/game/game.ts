@@ -14,6 +14,7 @@ import {
 } from '@/game/game-types.d';
 import deepClone from '@/utils/deep-clone';
 import getIsWinningMove from './get-is-winning-move';
+import { Uuid } from '@/global.d';
 
 const DEFAULT_BOARD_DIMENSIONS = {
     rows: 6,
