@@ -6,9 +6,9 @@ import { Uuid } from '@/global';
 import { InviteStatus } from '@/invite/invite-service.d';
 
 export type PersistedInvite = {
-    uuid: String;
-    inviter: String;
-    invitee: String;
+    uuid: string;
+    inviter: string;
+    invitee: string;
     exp: number;
     status: InviteStatus;
 };
@@ -37,5 +37,9 @@ export default class InMemoryInviteRepository implements InviteRepository {
         return Array.from(this.invites.values()).filter(
             ({ inviter, invitee }) => email === invitee
         );
+    }
+
+    async findInviteById(uuid: Uuid) {
+        return this.invites.get(uuid);
     }
 }

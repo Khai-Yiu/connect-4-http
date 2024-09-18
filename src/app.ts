@@ -81,6 +81,7 @@ const appFactory = ({
         internalEventSubscriber,
         createDispatchNotification(app.serverSocket)
     );
+
     const routers = resolveRouters({
         stage,
         keySet,

@@ -25,7 +25,7 @@ describe('user-integration', () => {
         jest.setSystemTime(currentDateInMilliseconds);
 
         app = appFactory({
-            stage: 'testlinks',
+            stage: 'test',
             keySet: jwtKeyPair
         });
         port = app.port;
@@ -246,13 +246,14 @@ describe('user-integration', () => {
                         .getUserDetails('dung.eater@gmail.com')
                         .run();
                     const response = testFixture.getResponses(2) as Response;
-                    const userAccountDetails = {
+
+                    expect(response.statusCode).toBe(200);
+                    expect(response.body).toEqual({
                         firstName: 'Dung',
                         lastName: 'Eater',
-                        email: 'dung.eater@gmail.com'
-                    };
-                    expect(response.statusCode).toBe(200);
-                    expect(response.body).toEqual(userAccountDetails);
+                        email: 'dung.eater@gmail.com',
+                        uuid: expect.toBeUuid()
+                    });
                 });
             });
         });

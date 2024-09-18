@@ -2,6 +2,23 @@ import express from 'express';
 import { RequestHandler } from 'express-serve-static-core';
 import InviteService from '@/invite/invite-service';
 import halson from 'halson';
+import { Uuid } from '@/global';
+
+const createInviteAcceptMiddleware =
+    (inviteService: InviteService): RequestHandler =>
+    async (req, res, next) => {
+        const sessionUuid = await inviteService.acceptInvite(
+            req.params.inviteUuid as Uuid
+        );
+
+        res.status(200).send(
+            halson({
+                _links: {
+                    related: [{ href: `/session/${sessionUuid}` }]
+                }
+            }).addLink('self', req.originalUrl)
+        );
+    };
 
 const createGetReceivedInvitesRequestHandler =
     (inviteService: InviteService): RequestHandler =>
@@ -92,6 +109,11 @@ const inviteRouterFactory = (inviteService: InviteService) => {
     inviteRouter.post(
         '/inbox',
         createGetReceivedInvitesRequestHandler(inviteService)
+    );
+
+    inviteRouter.post(
+        '/:inviteUuid/accept',
+        createInviteAcceptMiddleware(inviteService)
     );
 
     return inviteRouter;

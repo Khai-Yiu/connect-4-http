@@ -164,7 +164,8 @@ describe('user-service', () => {
                 ).toEqual({
                     firstName: 'Thomas',
                     lastName: 'Ho',
-                    email: 'thomas.ho@gmail.com'
+                    email: 'thomas.ho@gmail.com',
+                    uuid: expect.toBeUuid()
                 });
             });
         });

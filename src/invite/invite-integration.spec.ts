@@ -5,6 +5,9 @@ import { generateKeyPair } from 'jose';
 import { App } from 'supertest/types';
 import request, { Response } from 'supertest';
 
+const uuidRegex =
+    /^\/session\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+
 describe('invite-integration', () => {
     let app: App;
     let jwtKeyPair: KeySet;
@@ -218,6 +221,10 @@ describe('invite-integration', () => {
                             .getReceivedInvites('invitee@gmail.com')
                             .run();
 
+                        const loginResponse = testFixture.getResponses(
+                            3
+                        ) as Response;
+
                         const receivedInvitesResponse =
                             testFixture.getResponses(5) as Response;
                         const acceptLink =
@@ -226,16 +233,21 @@ describe('invite-integration', () => {
                         const inviteUuid =
                             receivedInvitesResponse.body.invites[0].uuid;
 
-                        const response = await request(app).post(acceptLink);
+                        const response = await request(app)
+                            .post(acceptLink)
+                            .set(
+                                'Authorization',
+                                loginResponse.headers.authorization
+                            );
 
                         expect(response.body).toEqual({
                             _links: {
                                 self: {
-                                    href: `/invite/${inviteUuid}`
+                                    href: `/invite/${inviteUuid}/accept`
                                 },
                                 related: [
                                     {
-                                        href: `/session/${expect.toBeUuid()}`
+                                        href: expect.stringMatching(uuidRegex)
                                     }
                                 ]
                             }

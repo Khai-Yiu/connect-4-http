@@ -1,5 +1,6 @@
 import InMemoryInviteRepository from '@/invite/in-memory-invite-repository';
 import { InviteCreationDetails } from '@/invite/in-memory-invite-repository.d';
+import { InviteStatus } from './invite-service.d';
 
 describe('in-memory-invite-repository', () => {
     describe('given details of an invite', () => {
@@ -39,10 +40,9 @@ describe('in-memory-invite-repository', () => {
                 } as InviteCreationDetails;
                 await repository.create(receivedInviteDetails);
                 await repository.create(forwardedInviteDetails);
-                const invites =
-                    await repository.findReceivedInvitesByEmail(
-                        'player2@gmail.com'
-                    );
+                const invites = await repository.findReceivedInvitesByEmail(
+                    'player2@gmail.com'
+                );
                 expect(invites).toEqual([
                     {
                         uuid: expect.toBeUuid(),
@@ -52,6 +52,29 @@ describe('in-memory-invite-repository', () => {
                         status: 'PENDING'
                     }
                 ]);
+            });
+        });
+    });
+    describe('retrieving an invite', () => {
+        describe('given an invite', () => {
+            it('returns details about the invite', async () => {
+                const repository = new InMemoryInviteRepository();
+                const { uuid } = await repository.create({
+                    inviter: 'player1@gmail.com',
+                    invitee: 'player2@gmail.com',
+                    exp: 1000,
+                    status: InviteStatus.PENDING
+                });
+
+                const inviteDetails = await repository.findInviteById(uuid);
+
+                expect(inviteDetails).toEqual({
+                    uuid,
+                    inviter: 'player1@gmail.com',
+                    invitee: 'player2@gmail.com',
+                    exp: 1000,
+                    status: 'PENDING'
+                });
             });
         });
     });

@@ -8,6 +8,7 @@ import TestFixture from '@/test-fixture/test-fixture';
 import { ExpressWithPortAndSocket } from '@/create-server-side-web-socket';
 import { Subject } from 'rxjs';
 import { InviteCreatedEvent } from '@/invite/create-invite-event-listener';
+import { InternalEventPublisher } from '@/app.d';
 
 type InviteReceivedMessage = {
     inviter: string;
@@ -22,13 +23,13 @@ describe('invite-notification-integration', () => {
     let port: number;
     let socketServer: Server;
     let testFixture: TestFixture;
-    let internalEventPublisher;
+    let internalEventPublisher: InternalEventPublisher<any, any>;
 
     beforeAll(async () => {
         const jwtKeyPair = generateKeyPair('RS256');
         const messageSubject: Subject<InviteCreatedEvent> = new Subject();
         internalEventPublisher = jest.fn((content: InviteCreatedEvent) =>
-            Promise.resolve(messageSubject.next({ ...content }))
+            Promise.resolve(messageSubject.next(content))
         );
         app = appFactory({
             stage: 'test',
@@ -49,7 +50,7 @@ describe('invite-notification-integration', () => {
     describe('given a user is logged in', () => {
         describe('and connected to the notification service', () => {
             let inviteeSocket: Socket;
-            let inviteePromise;
+            let inviteePromise: Promise<void>;
 
             beforeEach(async () => {
                 let resolveInviteeSocketConnects: (value: unknown) => void;

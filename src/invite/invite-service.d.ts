@@ -12,7 +12,9 @@ export type InviteDetails = {
 };
 
 export enum InviteStatus {
-    PENDING = 'PENDING'
+    PENDING = 'PENDING',
+    ACCEPTED = 'ACCEPTED',
+    DECLINED = 'DECLINED'
 }
 
 export enum InviteEvents {

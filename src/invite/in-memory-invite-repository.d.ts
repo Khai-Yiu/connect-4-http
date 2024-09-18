@@ -1,3 +1,4 @@
+import { Uuid } from '@/global';
 import { PersistedInvite } from '@/invite/in-memory-invite-repository';
 import { InviteStatus } from '@/invite/invite-service.d';
 
@@ -8,6 +9,7 @@ export interface InviteRepository {
     findReceivedInvitesByEmail: (
         email: string
     ) => Promise<Array<PersistedInvite>>;
+    findInviteById: (uuid: Uuid) => Promise<PersistedInvite>;
 }
 
 export type InviteCreationDetails = {

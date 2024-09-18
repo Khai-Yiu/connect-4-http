@@ -1,7 +1,7 @@
 import TestFixture from '@/test-fixture/test-fixture';
 import { generateKeyPair } from 'jose';
 import appFactory from '@/app';
-import { KeySet } from './global';
+import { KeySet } from '@/global.d';
 import { Response } from 'supertest';
 import { App } from 'supertest/types';
 
@@ -326,6 +326,24 @@ describe('test-fixture', () => {
                     const response = testFixture.getResponses(4) as Response;
                     expect(response.statusCode).toBe(401);
                 });
+            });
+        });
+    });
+    describe('given a request to accept an invite', () => {
+        describe('and the required email is provided', () => {
+            it('returns a response', async () => {
+                const testFixture = new TestFixture(app);
+                await testFixture
+                    .createUser('player1@gmail.com', 'Hello123')
+                    .createUser('player2@gmail.com', 'Hello123')
+                    .login('player1@gmail.com', 'Hello123')
+                    .login('player2@gmail.com', 'Hello123')
+                    .createInvite('player1@gmail.com', 'player2@gmail.com')
+                    .getReceivedInvites('player2@gmail.com')
+                    .acceptInvite('player2@gmail.com')
+                    .run();
+                const response = testFixture.getResponses(5) as Response;
+                expect(response.statusCode).toBe(201);
             });
         });
     });

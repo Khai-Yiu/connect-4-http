@@ -39,12 +39,14 @@ interface Fixture {
 class TestFixture implements Fixture {
     private app: App;
     private authorizationFields: { [key: string]: string };
+    private invites: { [key: string]: [] };
     private responses: Response[];
     private queue: (() => Promise<void>)[] = [];
 
     constructor(app?: App) {
         this.app = app ?? (async () => await createDefaultApp());
         this.authorizationFields = {};
+        this.invites = {};
         this.responses = [];
         this.queue = [];
     }
@@ -167,6 +169,40 @@ class TestFixture implements Fixture {
             this.responses.push(
                 await request(this.app)
                     .post('/invite/inbox')
+                    .set(
+                        'Authorization',
+                        options?.customAuthField ??
+                            this.authorizationFields[
+                                options?.authenticatedUser ?? email
+                            ] ??
+                            'UserNotLoggedIn'
+                    )
+                    .send()
+            );
+
+            const newInvites =
+                this.responses[this.responses.length - 1].body.invites;
+
+            this.invites[email] =
+                this.invites[email] === undefined
+                    ? newInvites
+                    : [...this.invites[email], ...newInvites];
+        };
+
+        this.addToQueue(callbackFn.bind(this));
+        return this;
+    }
+
+    acceptInvite(
+        email: string,
+        inviteIndex: number = 0,
+        options?: { customAuthField?: string; authenticatedUser?: string }
+    ) {
+        const callbackFn = async function () {
+            const { uuid } = this.invites[email][inviteIndex];
+            this.responses.push(
+                await request(this.app)
+                    .post(`/invite/${uuid}/accept`)
                     .set(
                         'Authorization',
                         options?.customAuthField ??

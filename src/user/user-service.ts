@@ -1,6 +1,8 @@
 import { isEmpty } from 'ramda';
-import { PersistedUser } from '@/user/in-memory-user-repository';
-import { UserRepository } from '@/user/in-memory-user-repository.d';
+import {
+    PersistedUser,
+    UserRepository
+} from '@/user/in-memory-user-repository.d';
 import {
     CreateUserDetails,
     UserCredentials,
@@ -71,6 +73,7 @@ export default class UserService implements UserServiceInterface {
         }
 
         return {
+            uuid: persistedUser.uuid,
             firstName: persistedUser.firstName,
             lastName: persistedUser.lastName,
             email: persistedUser.email

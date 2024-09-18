@@ -8,6 +8,11 @@ import inviteRouterFactory from '@/invite/invite-router';
 import InMemoryInviteRepository from '@/invite/in-memory-invite-repository';
 import createInviteEventPublishers from '@/invite/create-invite-event-publishers';
 import { InternalEventPublisher } from '@/app.d';
+import SessionService from '@/session/session-service';
+import InMemorySessionRepository from '@/session/in-memory-session-repository';
+import GameService from '@/game/game-service';
+import InMemoryGameRepository from '@/game/in-memory-game-repository';
+import Game from '@/game/game';
 
 export enum RouterTypes {
     'userRouter',
@@ -35,9 +40,24 @@ export const resolveRouters = ({
         stage === 'production'
             ? new InMemoryInviteRepository()
             : new InMemoryInviteRepository();
+    const gameRepository =
+        stage === 'production'
+            ? new InMemoryGameRepository()
+            : new InMemoryGameRepository();
+    const sessionRepository =
+        stage === 'production'
+            ? new InMemorySessionRepository()
+            : new InMemorySessionRepository();
+
     const userService = new UserService(userRepository);
+    const gameService = new GameService(
+        gameRepository,
+        (...args) => new Game(...args)
+    );
+    const sessionService = new SessionService(sessionRepository, gameService);
     const inviteService = new InviteService(
         userService,
+        sessionService,
         inviteRepository,
         createInviteEventPublishers(internalEventPublisher)
     );
