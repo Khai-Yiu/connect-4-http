@@ -3,7 +3,7 @@ import { KeySet } from '@/global';
 import TestFixture from '@/test-fixture/test-fixture';
 import { generateKeyPair } from 'jose';
 import { App } from 'supertest/types';
-import { Response } from 'supertest';
+import request, { Response } from 'supertest';
 
 describe('invite-integration', () => {
     let app: App;
@@ -164,6 +164,11 @@ describe('invite-integration', () => {
                             .getReceivedInvites('player2@gmail.com')
                             .run();
 
+                        const {
+                            body: {
+                                invite: { uuid }
+                            }
+                        } = testFixture.getResponses(4) as Response;
                         const response = testFixture.getResponses(
                             6
                         ) as Response;
@@ -178,9 +183,63 @@ describe('invite-integration', () => {
                                 exp:
                                     currentDateInMilliseconds +
                                     lengthOfDayInMilliseconds,
-                                status: 'PENDING'
+                                status: 'PENDING',
+                                _links: {
+                                    accept: {
+                                        href: `/invite/${uuid}/accept`,
+                                        method: 'POST'
+                                    },
+                                    decline: {
+                                        href: `/invite/${uuid}/decline`,
+                                        method: 'POST'
+                                    }
+                                }
                             }
                         ]);
+                    });
+                });
+            });
+        });
+    });
+    describe('accepting an invite', () => {
+        describe('given a user is logged in', () => {
+            describe('and they have received a pending invite', () => {
+                describe('when the invite is accepted', () => {
+                    it('creates a new session', async () => {
+                        await testFixture
+                            .createUser('inviter@gmail.com', 'Hello123')
+                            .createUser('invitee@gmail.com', 'Hello123')
+                            .login('inviter@gmail.com', 'Hello123')
+                            .login('invitee@gmail.com', 'Hello123')
+                            .createInvite(
+                                'inviter@gmail.com',
+                                'invitee@gmail.com'
+                            )
+                            .getReceivedInvites('invitee@gmail.com')
+                            .run();
+
+                        const receivedInvitesResponse =
+                            testFixture.getResponses(5) as Response;
+                        const acceptLink =
+                            receivedInvitesResponse.body.invites[0]._links
+                                .accept.href;
+                        const inviteUuid =
+                            receivedInvitesResponse.body.invites[0].uuid;
+
+                        const response = await request(app).post(acceptLink);
+
+                        expect(response.body).toEqual({
+                            _links: {
+                                self: {
+                                    href: `/invite/${inviteUuid}`
+                                },
+                                related: [
+                                    {
+                                        href: `/session/${expect.toBeUuid()}`
+                                    }
+                                ]
+                            }
+                        });
                     });
                 });
             });

@@ -25,7 +25,7 @@ describe('user-integration', () => {
         jest.setSystemTime(currentDateInMilliseconds);
 
         app = appFactory({
-            stage: 'test',
+            stage: 'testlinks',
             keySet: jwtKeyPair
         });
         port = app.port;

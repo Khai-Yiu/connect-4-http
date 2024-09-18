@@ -1,6 +1,7 @@
 import express from 'express';
 import { RequestHandler } from 'express-serve-static-core';
 import InviteService from '@/invite/invite-service';
+import halson from 'halson';
 
 const createGetReceivedInvitesRequestHandler =
     (inviteService: InviteService): RequestHandler =>
@@ -8,7 +9,23 @@ const createGetReceivedInvitesRequestHandler =
         const email = res.locals.claims.email;
         const invites = await inviteService.getReceivedInvites(email);
 
-        res.status(201).send({ invites });
+        res.status(201).send({
+            invites: invites.map((invite) =>
+                halson({
+                    ...invite,
+                    _links: {
+                        accept: {
+                            href: `/invite/${invite.uuid}/accept`,
+                            method: 'POST'
+                        },
+                        decline: {
+                            href: `/invite/${invite.uuid}/decline`,
+                            method: 'POST'
+                        }
+                    }
+                })
+            )
+        });
         next();
     };
 
