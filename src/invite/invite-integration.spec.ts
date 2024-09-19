@@ -4,8 +4,10 @@ import TestFixture from '@/test-fixture/test-fixture';
 import { generateKeyPair } from 'jose';
 import { App } from 'supertest/types';
 import request, { Response } from 'supertest';
+import { number } from 'joi';
+import halson from 'halson';
 
-const uuidRegex =
+const sessionUriRegex =
     /^\/session\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
 
 describe('invite-integration', () => {
@@ -208,7 +210,7 @@ describe('invite-integration', () => {
         describe('given a user is logged in', () => {
             describe('and they have received a pending invite', () => {
                 describe('when the invite is accepted', () => {
-                    it('creates a new session', async () => {
+                    it('marks the invite as accepted and creates a new session ', async () => {
                         await testFixture
                             .createUser('inviter@gmail.com', 'Hello123')
                             .createUser('invitee@gmail.com', 'Hello123')
@@ -243,15 +245,50 @@ describe('invite-integration', () => {
                         expect(response.body).toEqual({
                             _links: {
                                 self: {
-                                    href: `/invite/${inviteUuid}/accept`
+                                    href: `/invite/${inviteUuid}`
                                 },
                                 related: [
                                     {
-                                        href: expect.stringMatching(uuidRegex)
+                                        href: expect.stringMatching(
+                                            sessionUriRegex
+                                        )
                                     }
                                 ]
                             }
                         });
+
+                        const resource = halson(response.body);
+                        const { href: inviteUri } = resource.getLink('self', {
+                            href: ''
+                        });
+                        const { href: sessionUri } = resource.getLink(
+                            'related',
+                            { href: '' }
+                        );
+
+                        const inviteResponse = await request(app)
+                            .post(inviteUri)
+                            .set(
+                                'Authorization',
+                                loginResponse.headers.authorization
+                            );
+
+                        expect(inviteResponse.body.invite).toEqual({
+                            uuid: expect.toBeUuid(),
+                            inviter: 'player1@gmail.com',
+                            invitee: 'player2@gmail.com',
+                            exp: expect.any(number),
+                            status: 'ACCEPTED'
+                        });
+
+                        const sessionResponse = await request(app)
+                            .post(sessionUri)
+                            .set(
+                                'Authorization',
+                                loginResponse.headers.authorization
+                            );
+
+                        expect(sessionResponse.statusCode).toBe(201);
                     });
                 });
             });
