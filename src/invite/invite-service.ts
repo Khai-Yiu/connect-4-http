@@ -14,6 +14,7 @@ interface InviteServiceInterface {
     create: (
         inviteCreationDetails: InviteCreationDetails
     ) => Promise<InviteDetails>;
+    getInvite: (inviteUuid: Uuid) => Promise<InviteDetails>;
     getReceivedInvites: (email: string) => Promise<Array<InviteDetails>>;
     acceptInvite: (uuid: Uuid) => Promise<Uuid>;
 }
@@ -69,6 +70,10 @@ export default class InviteService implements InviteServiceInterface {
         return inviteDetails as InviteDetails;
     }
 
+    async getInvite(inviteUuid: Uuid) {
+        return await this.inviteRepository.findInviteById(inviteUuid);
+    }
+
     async getReceivedInvites(email: string) {
         return (await this.inviteRepository.findReceivedInvitesByEmail(
             email
@@ -85,9 +90,7 @@ export default class InviteService implements InviteServiceInterface {
             inviteDetails.invitee
         );
 
-        if (inviteDetails) {
-            inviteDetails.status = InviteStatus.ACCEPTED;
-        }
+        inviteDetails.status = InviteStatus.ACCEPTED;
 
         const sessionDetails = await this.sessionService.createSession({
             inviterUuid,

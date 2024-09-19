@@ -1,10 +1,12 @@
+import { Uuid } from '@/global';
+
 export type InviteCreationDetails = {
     inviter: string;
     invitee: string;
 };
 
 export type InviteDetails = {
-    uuid: string;
+    uuid: Uuid;
     inviter: string;
     invitee: string;
     exp: number;
