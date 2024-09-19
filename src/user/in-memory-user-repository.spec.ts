@@ -58,10 +58,8 @@ describe('in-memory-user-repository', () => {
     describe('given a uuid', () => {
         it('returns the user details', async () => {
             const inMemoryUserRepository = new InMemoryUserRepositoryFactory();
-            const uuid = '802ca470-8d69-4fa6-a51e-81d37647b94f';
 
-            await inMemoryUserRepository.create({
-                uuid,
+            const { uuid } = await inMemoryUserRepository.create({
                 firstName: 'John',
                 lastName: 'Doe',
                 email: 'john.doe@gmail.com',
@@ -69,16 +67,14 @@ describe('in-memory-user-repository', () => {
                     '$argon2id$v=19$m=65536,t=3,p=4$69uuSYaO9KQmE/83AXUpOA$0E+BlpapwGDhLuToVg1+chQrWOmPrYe+My6CCStF+GM'
             });
             const users = await inMemoryUserRepository.findByUuid(uuid);
-            expect(users).toEqual([
-                {
-                    uuid,
-                    firstName: 'John',
-                    lastName: 'Doe',
-                    email: 'john.doe@gmail.com',
-                    password:
-                        '$argon2id$v=19$m=65536,t=3,p=4$69uuSYaO9KQmE/83AXUpOA$0E+BlpapwGDhLuToVg1+chQrWOmPrYe+My6CCStF+GM'
-                }
-            ]);
+            expect(users).toEqual({
+                uuid,
+                firstName: 'John',
+                lastName: 'Doe',
+                email: 'john.doe@gmail.com',
+                password:
+                    '$argon2id$v=19$m=65536,t=3,p=4$69uuSYaO9KQmE/83AXUpOA$0E+BlpapwGDhLuToVg1+chQrWOmPrYe+My6CCStF+GM'
+            });
         });
     });
 });

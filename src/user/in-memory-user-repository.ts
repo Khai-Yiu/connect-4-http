@@ -31,4 +31,8 @@ export default class InMemoryUserRepositoryFactory implements UserRepository {
             (user) => user.email === email
         );
     }
+
+    async findByUuid(uuid: Uuid) {
+        return this.users.get(uuid);
+    }
 }
