@@ -169,6 +169,25 @@ describe('user-service', () => {
                 });
             });
         });
+        describe('given a user uuid for an existing user', () => {
+            it('returns the user details', async () => {
+                const repository = new InMemoryUserRepositoryFactory();
+                const userService = new UserService(repository);
+                const userDetails = {
+                    firstName: 'Thomas',
+                    lastName: 'Ho',
+                    email: 'thomas.ho@gmail.com',
+                    password: '1231232121321'
+                };
+                const { uuid } = await userService.create(userDetails);
+                expect(await userService.getUserDetailsByUuid(uuid)).toEqual({
+                    firstName: 'Thomas',
+                    lastName: 'Ho',
+                    email: 'thomas.ho@gmail.com',
+                    uuid
+                });
+            });
+        });
     });
     describe('check if user exists', () => {
         describe('given the email of an existing user', () => {
