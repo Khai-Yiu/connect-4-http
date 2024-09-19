@@ -10,6 +10,7 @@ import {
     AuthenticationDetails
 } from '@/user/user-service.d';
 import argon2 from 'argon2';
+import { Uuid } from '@/global';
 
 export class UserAlreadyExistsError extends Error {}
 export class AuthenticationFailedError extends Error {}
@@ -21,6 +22,7 @@ export interface UserServiceInterface {
         userCredentials: UserCredentials
     ) => Promise<AuthenticationDetails>;
     getUserDetails: (email: String) => Promise<UserDetails>;
+    getUserDetailsByUuid: (uuid: Uuid) => Promise<UserDetails>;
     getDoesUserExist: (email: String) => Promise<Boolean>;
 }
 
@@ -78,6 +80,12 @@ export default class UserService implements UserServiceInterface {
             lastName: persistedUser.lastName,
             email: persistedUser.email
         };
+    }
+
+    async getUserDetailsByUuid(uuid: Uuid) {
+        const persistedUser = await this.repository.findByUuid(uuid);
+
+        return persistedUser;
     }
 
     async getDoesUserExist(email: string) {

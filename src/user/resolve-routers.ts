@@ -13,6 +13,7 @@ import InMemorySessionRepository from '@/session/in-memory-session-repository';
 import GameService from '@/game/game-service';
 import InMemoryGameRepository from '@/game/in-memory-game-repository';
 import Game from '@/game/game';
+import sessionRouterFactory from '@/session/session-router';
 
 export enum RouterTypes {
     'userRouter',
@@ -69,6 +70,7 @@ export const resolveRouters = ({
             keySet,
             authority
         ),
-        [RouterTypes.inviteRouter]: inviteRouterFactory(inviteService)
+        [RouterTypes.inviteRouter]: inviteRouterFactory(inviteService),
+        [RouterTypes.sessionRouter]: sessionRouterFactory(sessionService)
     };
 };

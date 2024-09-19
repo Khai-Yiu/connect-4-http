@@ -184,7 +184,8 @@ describe('user-service', () => {
                     firstName: 'Thomas',
                     lastName: 'Ho',
                     email: 'thomas.ho@gmail.com',
-                    uuid
+                    uuid,
+                    password: expect.any(String)
                 });
             });
         });
