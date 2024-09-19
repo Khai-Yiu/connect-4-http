@@ -16,7 +16,8 @@ import Game from '@/game/game';
 
 export enum RouterTypes {
     'userRouter',
-    'inviteRouter'
+    'inviteRouter',
+    'sessionRouter'
 }
 
 export type RouterParameters = {

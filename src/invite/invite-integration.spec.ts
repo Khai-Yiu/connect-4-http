@@ -4,7 +4,6 @@ import TestFixture from '@/test-fixture/test-fixture';
 import { generateKeyPair } from 'jose';
 import { App } from 'supertest/types';
 import request, { Response } from 'supertest';
-import { number } from 'joi';
 import halson from 'halson';
 
 const sessionUriRegex =
@@ -267,7 +266,7 @@ describe('invite-integration', () => {
                         );
 
                         const inviteResponse = await request(app)
-                            .post(inviteUri)
+                            .get(inviteUri)
                             .set(
                                 'Authorization',
                                 loginResponse.headers.authorization
@@ -275,20 +274,20 @@ describe('invite-integration', () => {
 
                         expect(inviteResponse.body.invite).toEqual({
                             uuid: expect.toBeUuid(),
-                            inviter: 'player1@gmail.com',
-                            invitee: 'player2@gmail.com',
-                            exp: expect.any(number),
+                            inviter: 'inviter@gmail.com',
+                            invitee: 'invitee@gmail.com',
+                            exp: expect.any(Number),
                             status: 'ACCEPTED'
                         });
 
                         const sessionResponse = await request(app)
-                            .post(sessionUri)
+                            .get(sessionUri)
                             .set(
                                 'Authorization',
                                 loginResponse.headers.authorization
                             );
 
-                        expect(sessionResponse.statusCode).toBe(201);
+                        expect(sessionResponse.statusCode).toBe(200);
                     });
                 });
             });

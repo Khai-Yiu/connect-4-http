@@ -168,7 +168,7 @@ class TestFixture implements Fixture {
         const callbackFn = async function () {
             this.responses.push(
                 await request(this.app)
-                    .post('/invite/inbox')
+                    .get('/invite/inbox')
                     .set(
                         'Authorization',
                         options?.customAuthField ??

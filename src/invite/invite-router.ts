@@ -4,6 +4,16 @@ import InviteService from '@/invite/invite-service';
 import halson from 'halson';
 import { Uuid } from '@/global';
 
+const createGetInviteRequestHandler =
+    (inviteService: InviteService): RequestHandler =>
+    async (req, res, next) => {
+        const inviteDetails = await inviteService.getInvite(
+            req.params.inviteUuid as Uuid
+        );
+
+        res.status(200).send({ invite: inviteDetails });
+    };
+
 const createInviteAcceptMiddleware =
     (inviteService: InviteService): RequestHandler =>
     async (req, res, next) => {
@@ -16,7 +26,7 @@ const createInviteAcceptMiddleware =
                 _links: {
                     related: [{ href: `/session/${sessionUuid}` }]
                 }
-            }).addLink('self', req.originalUrl)
+            }).addLink('self', `/invite/${req.params.inviteUuid}`)
         );
     };
 
@@ -43,7 +53,6 @@ const createGetReceivedInvitesRequestHandler =
                 })
             )
         });
-        next();
     };
 
 const createCreateInvitationRequestHandler =
@@ -106,7 +115,7 @@ const inviteRouterFactory = (inviteService: InviteService) => {
         createInviteAuthorizationMiddleware,
         createCreateInvitationRequestHandler(inviteService)
     );
-    inviteRouter.post(
+    inviteRouter.get(
         '/inbox',
         createGetReceivedInvitesRequestHandler(inviteService)
     );
@@ -114,6 +123,11 @@ const inviteRouterFactory = (inviteService: InviteService) => {
     inviteRouter.post(
         '/:inviteUuid/accept',
         createInviteAcceptMiddleware(inviteService)
+    );
+
+    inviteRouter.get(
+        '/:inviteUuid',
+        createGetInviteRequestHandler(inviteService)
     );
 
     return inviteRouter;
