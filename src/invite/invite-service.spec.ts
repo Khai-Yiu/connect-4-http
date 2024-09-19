@@ -181,4 +181,35 @@ describe('invite-service', () => {
             });
         });
     });
+    describe('retrieving an invite', () => {
+        describe('given an inviter who is an existing user', () => {
+            describe('and an invitee who is an existing user', () => {
+                describe('and the inviter invites the invitee', () => {
+                    describe('and the invite id is provided', () => {
+                        it('returns details of the invite', async () => {
+                            const { uuid, exp } = await inviteService.create({
+                                inviter: 'player1@gmail.com',
+                                invitee: 'player2@gmail.com'
+                            });
+                            const retrievedInviteDetails =
+                                await inviteService.getInvite(uuid);
+
+                            expect(retrievedInviteDetails).toEqual({
+                                uuid,
+                                inviter: 'player1@gmail.com',
+                                invitee: 'player2@gmail.com',
+                                exp,
+                                status: 'PENDING'
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+    describe('accepting invites', () => {
+        describe('given a pending invite', () => {
+            describe('and the invitee accepts', () => {});
+        });
+    });
 });
