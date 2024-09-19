@@ -93,6 +93,7 @@ const appFactory = ({
     app.use(createAuthenticationMiddleware(keySet.privateKey));
     app.use('/user', routers[RouterTypes.userRouter]);
     app.use('/invite', routers[RouterTypes.inviteRouter]);
+    app.use('/session', routers[RouterTypes.sessionRouter]);
 
     return app;
 };

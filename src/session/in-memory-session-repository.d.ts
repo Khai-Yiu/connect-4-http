@@ -23,6 +23,7 @@ export type SessionDetails = {
     invitee: {
         uuid: Uuid;
     };
+    status: SessionStatus;
     games: Map<Uuid, GameMetadata>;
     activeGameUuid?: Uuid;
 };

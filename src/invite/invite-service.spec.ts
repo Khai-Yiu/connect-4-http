@@ -209,7 +209,26 @@ describe('invite-service', () => {
     });
     describe('accepting invites', () => {
         describe('given a pending invite', () => {
-            describe('and the invitee accepts', () => {});
+            describe('and the invitee accepts', () => {
+                it('the invite is accepted', async () => {
+                    const { uuid, exp } = await inviteService.create({
+                        inviter: 'player1@gmail.com',
+                        invitee: 'player2@gmail.com'
+                    });
+
+                    await inviteService.acceptInvite(uuid);
+                    const retrievedInviteDetails =
+                        await inviteService.getInvite(uuid);
+
+                    expect(retrievedInviteDetails).toEqual({
+                        uuid,
+                        inviter: 'player1@gmail.com',
+                        invitee: 'player2@gmail.com',
+                        exp,
+                        status: 'ACCEPTED'
+                    });
+                });
+            });
         });
     });
 });

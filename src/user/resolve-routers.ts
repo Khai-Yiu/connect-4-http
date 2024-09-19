@@ -71,6 +71,9 @@ export const resolveRouters = ({
             authority
         ),
         [RouterTypes.inviteRouter]: inviteRouterFactory(inviteService),
-        [RouterTypes.sessionRouter]: sessionRouterFactory(sessionService)
+        [RouterTypes.sessionRouter]: sessionRouterFactory(
+            sessionService,
+            userService
+        )
     };
 };
